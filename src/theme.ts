@@ -1,7 +1,7 @@
 /**
  * Supported theme names in the library.
  */
-export type ChartTheme = 'minimal' | 'common' | 'modern' | '3D' | 'glass' | 'elegant';
+export type ChartTheme = 'minimal' | 'common' | 'modern' | '3D' | 'glass' | 'elegant' | 'neon';
 
 /**
  * Styling options for a visual theme.
@@ -55,6 +55,10 @@ export interface ThemeStyles {
   extraLineStyle?: any;
   /** Theme-specific areaStyle gradient overlays merged directly into line series */
   extraAreaStyle?: any;
+  /** CSS background property value for the parent dashboard grid container */
+  dashboardBackground?: string;
+  /** CSS text color property value for the parent dashboard grid container */
+  dashboardTextColor?: string;
 }
 
 /**
@@ -80,7 +84,9 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     axisLineColor: '#333333',
     tooltipBg: 'rgba(255, 255, 255, 0.98)',
     tooltipBorderColor: '#ccc',
-    tooltipTextColor: '#333'
+    tooltipTextColor: '#333',
+    dashboardBackground: '#f1f5f9',
+    dashboardTextColor: '#0f172a'
   },
   minimal: {
     containerBackground: '#fafafa',
@@ -102,7 +108,9 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     axisLineColor: '#b5b5b5',
     tooltipBg: '#ffffff',
     tooltipBorderColor: '#e5e5e5',
-    tooltipTextColor: '#242424'
+    tooltipTextColor: '#242424',
+    dashboardBackground: '#fafafa',
+    dashboardTextColor: '#18181b'
   },
   modern: {
     containerBackground: 'linear-gradient(135deg, #1f1f35 0%, #151528 100%)',
@@ -164,7 +172,9 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
           { offset: 1, color: 'rgba(99, 102, 241, 0.01)' }
         ]
       }
-    }
+    },
+    dashboardBackground: '#0f0f1c',
+    dashboardTextColor: '#f1f5f9'
   },
   '3D': {
     containerBackground: '#e2e8f0',
@@ -217,7 +227,9 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
       shadowBlur: 8,
       shadowOffsetX: 2,
       shadowOffsetY: 4
-    }
+    },
+    dashboardBackground: '#e2e8f0',
+    dashboardTextColor: '#1e293b'
   },
   glass: {
     containerBackground: 'rgba(255, 255, 255, 0.08)',
@@ -268,7 +280,9 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     extraBarItemStyle: {
       borderRadius: [4, 4, 0, 0],
       opacity: 0.85
-    }
+    },
+    dashboardBackground: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%)',
+    dashboardTextColor: 'rgba(255, 255, 255, 0.9)'
   },
   elegant: {
     containerBackground: 'linear-gradient(135deg, #0e1626 0%, #060b13 100%)',
@@ -319,6 +333,62 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
       borderRadius: [2, 2, 0, 0],
       borderColor: 'rgba(212, 175, 55, 0.4)',
       borderWidth: 1
-    }
+    },
+    dashboardBackground: '#070c14',
+    dashboardTextColor: '#f1e7d0'
+  },
+  neon: {
+    containerBackground: 'rgba(13, 12, 22, 0.75)',
+    containerBorder: '1px solid rgba(0, 242, 254, 0.15)',
+    containerBorderRadius: '12px',
+    containerBoxShadow: '0 8px 32px 0 rgba(0, 242, 254, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.02)',
+    containerTransition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+    containerHoverBoxShadow: '0 0 20px 0 rgba(255, 0, 127, 0.35), 0 8px 32px 0 rgba(0, 242, 254, 0.15)',
+    containerHoverBorder: '1px solid rgba(255, 0, 127, 0.5)',
+    containerHoverTransform: 'translateY(-2px)',
+    cardTitleColor: '#00f2fe',
+    cardValueColor: '#ff007f',
+    cardFontFamily: 'Outfit, Poppins, Inter, system-ui, sans-serif',
+    echartsColors: [
+      {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [{ offset: 0, color: '#00f2fe' }, { offset: 1, color: '#4facfe' }]
+      },
+      {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [{ offset: 0, color: '#ff007f' }, { offset: 1, color: '#7f00ff' }]
+      },
+      {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [{ offset: 0, color: '#39ff14' }, { offset: 1, color: '#00ff87' }]
+      },
+      {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [{ offset: 0, color: '#ff00f0' }, { offset: 1, color: '#ff007f' }]
+      },
+      {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [{ offset: 0, color: '#ffb300' }, { offset: 1, color: '#ff3d00' }]
+      }
+    ],
+    textColor: '#e0e6ed',
+    fontFamily: 'Outfit, Poppins, Inter, system-ui, sans-serif',
+    gridLineColor: 'rgba(0, 242, 254, 0.05)',
+    gridLineType: 'dashed',
+    axisLineColor: 'rgba(0, 242, 254, 0.4)',
+    tooltipBg: 'rgba(10, 8, 20, 0.95)',
+    tooltipBorderColor: '#ff007f',
+    tooltipTextColor: '#ffffff',
+    extraBarItemStyle: {
+      borderRadius: [4, 4, 0, 0],
+      shadowBlur: 8,
+      shadowColor: 'rgba(0, 242, 254, 0.2)'
+    },
+    extraLineStyle: {
+      smooth: true,
+      width: 3
+    },
+    dashboardBackground: 'linear-gradient(135deg, #0a0813 0%, #05040a 100%)',
+    dashboardTextColor: '#e2e8f0'
   }
 };

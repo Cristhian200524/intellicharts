@@ -1,5 +1,5 @@
 import { Chart, Filter } from './Chart';
-import { ChartTheme } from './theme';
+import { ChartTheme, THEMES } from './theme';
 import { parseCSV } from './csv';
 
 /**
@@ -38,6 +38,7 @@ export class Dashboard {
     this.container.style.display = 'grid';
     this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
     this.container.style.gap = this.config.gap!;
+    this.applyDashboardTheme(this.config.theme ?? 'common');
 
     const observer = new ResizeObserver(entries => {
       for (let entry of entries) {
@@ -83,6 +84,7 @@ export class Dashboard {
    */
   public setTheme(theme: ChartTheme) {
     this.config.theme = theme;
+    this.applyDashboardTheme(theme);
     this.charts.forEach(chart => {
       if (chart.getConfig().theme !== undefined) {
         return;
@@ -161,6 +163,17 @@ export class Dashboard {
       }
       return true;
     });
+  }
+
+  private applyDashboardTheme(theme: ChartTheme) {
+    const styles = THEMES[theme];
+    if (styles) {
+      this.container.style.background = styles.dashboardBackground ?? 'transparent';
+      this.container.style.color = styles.dashboardTextColor ?? 'inherit';
+      this.container.style.padding = '20px';
+      this.container.style.borderRadius = '16px';
+      this.container.style.transition = 'all 0.4s ease';
+    }
   }
 
   /**

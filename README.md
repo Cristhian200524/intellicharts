@@ -10,7 +10,7 @@ IntelliCharts is a library for creating interactive dashboards. It connects mult
 | **Responsive Grid** | Automatically arranges charts in a grid that adapts to the screen size. It formats for desktops (multi-column), tablets (2 columns), and mobile phones (1 column). |
 | **KPI Metric Cards** | Displays key metrics and aggregated values in KPI cards. |
 | **Automatic Percentages** | Optionally converts chart values into percentages calculated dynamically against the currently filtered total. |
-| **Built-in Themes** | Features 6 visual styles (`common`, `minimal`, `modern`, `3D`, `glass`, `elegant`) that set backgrounds, borders, colors, shadows, and fonts globally or individually. |
+| **Built-in Themes** | Features 7 visual styles (`common`, `minimal`, `modern`, `3D`, `glass`, `elegant`, `neon`) that set backgrounds, borders, colors, shadows, and fonts globally or individually. |
 | **React Support** | Provides declarative components ready to use in React projects. |
 
 ## Installation
@@ -120,12 +120,13 @@ export default function App() {
 
 ## Available Themes
 
-- **`common`**: (Default) Flat white background cards, clean gray borders, and classic ECharts colors.
-- **`minimal`**: Light-grey borders, dashed grid lines, and shadowless container panels.
-- **`modern`**: Deep indigo dark background gradients, neon series colors, and purple hover borders.
-- **`3D`**: Neumorphic volumetric shadows, cylindrical bars, and raised container states.
-- **`glass`**: Frosted glassmorphism panels, translucent white borders, and glowing pastel colors.
-- **`elegant`**: Luxury dark styling, gold borders, cream typography, and jewel-toned charts.
+- **`common`**: (Default) White background, gray borders, and standard chart colors.
+- **`minimal`**: Light-gray borders, dashed grid lines, and no shadows.
+- **`modern`**: Indigo dark gradient, neon colors, and purple hover borders.
+- **`3D`**: Neumorphic shadows, cylindrical bars, and raised hover states.
+- **`glass`**: Frosted glass panels, translucent borders, and pastel colors.
+- **`elegant`**: Dark style with gold borders, cream text, and jewel-toned charts.
+- **`neon`**: Cyberpunk dark gradients, cyan borders, and neon colors.
 
 ## API Reference
 
