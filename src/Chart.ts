@@ -6,6 +6,8 @@ import { parseCSV } from './csv';
  * Configuration options for a single Chart instance.
  */
 export interface ChartConfig {
+  /** Optional unique identifier for the chart */
+  id?: string;
   /** The visual representation type of the chart */
   type: 'bar' | 'line' | 'pie' | 'donut' | 'radar' | 'card' | 'funnel';
   /** The object property used to group records */
@@ -194,14 +196,37 @@ export class Chart {
   }
 
   /**
-   * Visual render updating aggregations and binding ECharts options.
+   * Returns the DOM container element.
    */
-  public render(data: any[] | string) {
+  public getContainer(): HTMLElement | undefined {
+    return this.container;
+  }
+
+  /**
+   * Cleans up the chart by disposing of the ECharts instance and clearing listeners.
+   */
+  public dispose() {
+    if (this.instance) {
+      this.instance.dispose();
+      this.instance = undefined;
+    }
+    if (this.container) {
+      this.container.onmouseenter = null;
+      this.container.onmouseleave = null;
+    }
+  }
+
+  /**
+   * Visual render updating aggregations and binding ECharts options.
+   * Supports visual cross-highlighting of active selections (v1.0.1).
+   */
+  public render(data: any[] | string, activeFilters: Filter[] = []) {
     const parsedData = typeof data === 'string' ? parseCSV(data) : data;
     this.lastData = parsedData;
     data = parsedData;
     const theme = this.getResolvedTheme();
     const t = THEMES[theme];
+    const chartFilter = activeFilters.find(f => f.field === this.config.dimension);
 
     if (this.config.type === 'card') {
       if (!this.container) return;
@@ -252,7 +277,19 @@ export class Chart {
         tooltip: this.config.asPercentage ? { formatter: tooltipFormatter } : {},
         xAxis: { type: 'category', data: categories },
         yAxis: { type: 'value', axisLabel: yAxisLabel },
-        series: [{ type: 'bar', data: values, colorBy: 'data' }]
+        series: [{
+          type: 'bar',
+          data: categories.map((cat, i) => {
+            const isSelected = !chartFilter || String(cat) === String(chartFilter.value);
+            return {
+              value: values[i],
+              itemStyle: {
+                opacity: isSelected ? 1 : 0.25
+              }
+            };
+          }),
+          colorBy: 'data'
+        }]
       };
     } else if (this.config.type === 'line') {
       option = {
@@ -260,7 +297,19 @@ export class Chart {
         tooltip: this.config.asPercentage ? { formatter: tooltipFormatter } : {},
         xAxis: { type: 'category', data: categories },
         yAxis: { type: 'value', axisLabel: yAxisLabel },
-        series: [{ type: 'line', data: values }]
+        series: [{
+          type: 'line',
+          data: categories.map((cat, i) => {
+            const isSelected = !chartFilter || String(cat) === String(chartFilter.value);
+            return {
+              value: values[i],
+              symbolSize: isSelected ? 8 : 4,
+              itemStyle: {
+                opacity: isSelected ? 1 : 0.25
+              }
+            };
+          })
+        }]
       };
     } else if (this.config.type === 'pie') {
       option = {
@@ -268,7 +317,16 @@ export class Chart {
         tooltip: { trigger: 'item', formatter: this.config.asPercentage ? tooltipFormatter : undefined },
         series: [{
           type: 'pie',
-          data: categories.map((cat, i) => ({ name: cat, value: values[i] }))
+          data: categories.map((cat, i) => {
+            const isSelected = !chartFilter || String(cat) === String(chartFilter.value);
+            return {
+              name: cat,
+              value: values[i],
+              itemStyle: {
+                opacity: isSelected ? 1 : 0.25
+              }
+            };
+          })
         }]
       };
     } else if (this.config.type === 'donut') {
@@ -278,7 +336,16 @@ export class Chart {
         series: [{
           type: 'pie',
           radius: ['40%', '70%'],
-          data: categories.map((cat, i) => ({ name: cat, value: values[i] }))
+          data: categories.map((cat, i) => {
+            const isSelected = !chartFilter || String(cat) === String(chartFilter.value);
+            return {
+              name: cat,
+              value: values[i],
+              itemStyle: {
+                opacity: isSelected ? 1 : 0.25
+              }
+            };
+          })
         }]
       };
     } else if (this.config.type === 'radar') {
@@ -318,7 +385,16 @@ export class Chart {
           labelLine: {
             show: false
           },
-          data: categories.map((cat, i) => ({ name: cat, value: values[i] }))
+          data: categories.map((cat, i) => {
+            const isSelected = !chartFilter || String(cat) === String(chartFilter.value);
+            return {
+              name: cat,
+              value: values[i],
+              itemStyle: {
+                opacity: isSelected ? 1 : 0.25
+              }
+            };
+          })
         }]
       };
     }

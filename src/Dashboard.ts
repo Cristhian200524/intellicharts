@@ -91,7 +91,7 @@ export class Dashboard {
       chart.setResolvedTheme(theme);
       chart.applyContainerTheme(theme);
       if (this.data.length > 0) {
-        chart.render(this.getFilteredDataForChart(chart));
+        chart.render(this.getFilteredDataForChart(chart), this.activeFilters);
       }
     });
   }
@@ -122,7 +122,7 @@ export class Dashboard {
     });
     
     if (this.data.length > 0) {
-      chart.render(this.getFilteredDataForChart(chart));
+      chart.render(this.getFilteredDataForChart(chart), this.activeFilters);
     }
   }
 
@@ -143,7 +143,7 @@ export class Dashboard {
 
   private updateAllCharts() {
     this.charts.forEach(chart => {
-      chart.render(this.getFilteredDataForChart(chart));
+      chart.render(this.getFilteredDataForChart(chart), this.activeFilters);
     });
   }
 
@@ -160,6 +160,89 @@ export class Dashboard {
         }
       }
       return true;
+    });
+  }
+
+  /**
+   * Removes a single chart from the dashboard, cleaning up its DOM element and ECharts resources.
+   */
+  public removeChart(chart: Chart) {
+    const index = this.charts.indexOf(chart);
+    if (index >= 0) {
+      this.charts.splice(index, 1);
+      const chartContainer = chart.getContainer();
+      if (chartContainer && this.container.contains(chartContainer)) {
+        this.container.removeChild(chartContainer);
+      }
+      chart.dispose();
+    }
+  }
+
+  /**
+   * Removes all registered charts from the dashboard and clears the layout container.
+   */
+  public removeAllCharts() {
+    const chartsCopy = [...this.charts];
+    chartsCopy.forEach(chart => this.removeChart(chart));
+    this.charts = [];
+    this.container.innerHTML = '';
+  }
+
+  /**
+   * Replaces an existing chart with a new one in-place, reusing the DOM slot and applying layout updates.
+   */
+  public replaceChart(oldChart: Chart, newChart: Chart) {
+    const index = this.charts.indexOf(oldChart);
+    if (index === -1) return;
+
+    const chartContainer = oldChart.getContainer();
+    if (!chartContainer) return;
+
+    oldChart.dispose();
+
+    chartContainer.style.height = `calc(${this.config.rowHeight} * ${newChart.heightRows} + ${this.config.gap} * (${newChart.heightRows} - 1))`;
+    chartContainer.style.gridColumn = `span ${Math.min(newChart.widthColumns, this.config.columns!)}`;
+    chartContainer.style.gridRow = `span ${newChart.heightRows}`;
+    chartContainer.innerHTML = '';
+
+    this.charts[index] = newChart;
+
+    const resolvedTheme = newChart.getConfig().theme ?? this.config.theme ?? 'common';
+    newChart.setResolvedTheme(resolvedTheme);
+    newChart.mount(chartContainer);
+
+    newChart.onFilter((filter: Filter) => {
+      this.toggleFilter(filter);
+    });
+
+    if (this.data.length > 0) {
+      newChart.render(this.getFilteredDataForChart(newChart), this.activeFilters);
+    }
+  }
+
+  /**
+   * Finds a chart by its array index, or by matching its unique ID, dimension or title string.
+   */
+  public getChart(identifier: string | number): Chart | undefined {
+    if (typeof identifier === 'number') {
+      return this.charts[identifier];
+    }
+    return this.charts.find(chart => {
+      const config = chart.getConfig();
+      return config.id === identifier || config.dimension === identifier || config.title === identifier;
+    });
+  }
+
+  /**
+   * Checks if a chart exists in the dashboard by reference, or by matching its unique ID, dimension or title string.
+   */
+  public hasChart(chart: Chart | string): boolean {
+    if (chart instanceof Chart) {
+      return this.charts.includes(chart);
+    }
+    return this.charts.some(c => {
+      const config = c.getConfig();
+      return config.id === chart || config.dimension === chart || config.title === chart;
     });
   }
 }

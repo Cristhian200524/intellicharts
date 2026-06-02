@@ -8,7 +8,7 @@ IntelliCharts is a library for creating interactive dashboards. It connects mult
 | :--- | :--- |
 | **Cross-filtering** | Clicking any bar, line, or pie slice on a chart automatically filters all other charts in the dashboard to show only the information related to that category. |
 | **Responsive Grid** | Automatically arranges charts in a grid that adapts to the screen size. It formats for desktops (multi-column), tablets (2 columns), and mobile phones (1 column). |
-| **KPI Metric Cards** | Displays key metrics or accumulated totals in plain text cards. It automatically adjusts font sizes and truncates long titles with "..." to prevent layout overflows. |
+| **KPI Metric Cards** | Displays key metrics and aggregated values in KPI cards. |
 | **Automatic Percentages** | Optionally converts chart values into percentages calculated dynamically against the currently filtered total. |
 | **Built-in Themes** | Features 6 visual styles (`common`, `minimal`, `modern`, `3D`, `glass`, `elegant`) that set backgrounds, borders, colors, shadows, and fonts globally or individually. |
 | **React Support** | Provides declarative components ready to use in React projects. |
@@ -137,17 +137,22 @@ export default function App() {
 | | `setData` | `(data: any[] \| string)` | Loads the active dataset. Accepts an array of row objects or a raw CSV string. |
 | | `setTheme` | `(theme: ChartTheme)` | Updates the theme dynamically for the dashboard container and all registered child charts. |
 | | `addChart` | `(chart: Chart)` | Adds and mounts a child `Chart` widget to the responsive layout grid. |
-| **`Chart`** | `constructor` | `(config: ChartConfig)` | Defines a chart. `ChartConfig` fields: `type` (`'bar'\|'line'\|'pie'\|'donut'\|'radar'\|'card'\|'funnel'`), `dimension` (group key), `measure` (value key), `title`, `colors`, `valueFormatter`, `column`/`widthColumns`, `heightRows`, `asPercentage`, and `theme`. |
+| | `removeChart` | `(chart: Chart)` | Removes a single chart, cleaning up its DOM container and disposing of its resources. |
+| | `removeAllCharts` | `()` | Removes all registered charts and clears the dashboard grid container completely. |
+| | `replaceChart` | `(oldChart: Chart, newChart: Chart)` | Swaps an existing chart with a new one in-place, reusing the DOM slot and resizing it dynamically. |
+| | `getChart` | `(identifier: string \| number)` | Retrieves a chart from the dashboard by index, or by matching its `id`, `dimension` or `title` string. |
+| | `hasChart` | `(chart: Chart \| string)` | Checks if a chart exists in the dashboard by reference, or by matching its `id`, `dimension` or `title` string. |
+| **`Chart`** | `constructor` | `(config: ChartConfig)` | Defines a chart. `ChartConfig` fields: `id` (optional unique identifier), `type` (`'bar'\|'line'\|'pie'\|'donut'\|'radar'\|'card'\|'funnel'`), `dimension` (group key), `measure` (value key), `title`, `colors`, `valueFormatter`, `column`/`widthColumns`, `heightRows`, `asPercentage`, and `theme`. |
 | | `render` | `(data: any[] \| string)` | Aggregates and renders the chart visually using ECharts. Accepts CSV string or object array. |
 | | `onFilter` | `(cb: (filter: Filter) => void)` | Registers a category click callback for cross-filtering. |
-| | `setResolvedTheme` | `(theme: ChartTheme)` | Internal method to propagate theme setting. |
-| | `getResolvedTheme` | `()` | Retrieves the active `ChartTheme` resolved name. |
-| | `applyContainerTheme`| `(theme: ChartTheme)` | Style compiler applying container background, border, shadow, and hover transformations. |
+| | `getContainer` | `()` | Returns the HTMLElement wrapper container of the chart. |
+| | `dispose` | `()` | Cleans up the chart by disposing of the ECharts instance and removing mouse event listeners. |
 
 ## Version History
 
 | Version | Description / Key Additions |
 | :--- | :--- |
+| **`1.0.1`** | Support for filter dimming and new chart control methods. |
 | **`1.0.0`** | Initial release of IntelliCharts. Includes synchronized cross-filtering, automatic responsive grid layouts, native KPI card support with ellipsis title truncation, fluid CSS typography, React wrappers, and 6 built-in visual themes. |
 
 ## License
