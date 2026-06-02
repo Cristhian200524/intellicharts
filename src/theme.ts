@@ -99,10 +99,10 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'none',
     cardTitleColor: '#777777',
     cardValueColor: '#1a1a1a',
-    cardFontFamily: 'system-ui, -apple-system, sans-serif',
+    cardFontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     echartsColors: ['#242424', '#555555', '#888888', '#aaaaaa', '#cccccc'],
     textColor: '#242424',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     gridLineColor: '#f0f0f0',
     gridLineType: 'dashed',
     axisLineColor: '#b5b5b5',
@@ -186,7 +186,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-4px)',
     cardTitleColor: '#4a5568',
     cardValueColor: '#2b6cb0',
-    cardFontFamily: 'system-ui, -apple-system, sans-serif',
+    cardFontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -214,7 +214,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
       }
     ],
     textColor: '#2d3748',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
     gridLineColor: '#cbd5e0',
     gridLineType: 'solid',
     axisLineColor: '#4a5568',
@@ -242,7 +242,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: 'rgba(255, 255, 255, 0.7)',
     cardValueColor: '#ffffff',
-    cardFontFamily: 'system-ui, -apple-system, sans-serif',
+    cardFontFamily: 'Plus Jakarta Sans, Poppins, system-ui, -apple-system, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -270,7 +270,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
       }
     ],
     textColor: 'rgba(255, 255, 255, 0.85)',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'Plus Jakarta Sans, Poppins, system-ui, -apple-system, sans-serif',
     gridLineColor: 'rgba(255, 255, 255, 0.06)',
     gridLineType: 'dashed',
     axisLineColor: 'rgba(255, 255, 255, 0.4)',

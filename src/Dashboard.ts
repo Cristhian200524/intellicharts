@@ -1,6 +1,7 @@
 import { Chart, Filter } from './Chart';
 import { ChartTheme, THEMES } from './theme';
 import { parseCSV } from './csv';
+import { injectGoogleFonts } from './fonts';
 
 /**
  * Configuration options for the Dashboard layout engine.
@@ -32,6 +33,7 @@ export class Dashboard {
   private activeFilters: Filter[] = [];
 
   constructor(container: HTMLElement, config?: DashboardConfig) {
+    injectGoogleFonts();
     this.container = container;
     this.config = { columns: 3, gap: '20px', rowHeight: '300px', theme: 'common', ...config };
 

@@ -234,12 +234,13 @@ export class Chart {
       const totalValue = values.reduce((sum, val) => sum + val, 0);
       const displayValue = this.config.valueFormatter ? this.config.valueFormatter(totalValue) : String(totalValue);
       const valueColor = this.config.colors ? this.config.colors[0] : t.cardValueColor;
+      const cardFont = (t.cardFontFamily ?? 'sans-serif').replace(/"/g, "'");
 
       this.container.innerHTML = `
-        <div class="card-title" style="font-size: clamp(0.85rem, 2.5vw, 1.05rem); font-weight: 600; color: ${t.cardTitleColor}; font-family: ${t.cardFontFamily ?? 'sans-serif'}; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+        <div class="card-title" style="font-size: clamp(0.85rem, 2.5vw, 1.05rem); font-weight: 600; color: ${t.cardTitleColor}; font-family: ${cardFont}; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
           ${this.config.title || ''}
         </div>
-        <div class="card-value" style="font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 800; color: ${valueColor}; font-family: ${t.cardFontFamily ?? 'sans-serif'}; text-align: center; text-shadow: ${theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.3s ease;">
+        <div class="card-value" style="font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 800; color: ${valueColor}; font-family: ${cardFont}; text-align: center; text-shadow: ${theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.3s ease;">
           ${displayValue}
         </div>
       `;

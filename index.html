@@ -4,10 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IntelliCharts Interactive Dashboard</title>
-    <!-- Google Fonts for gorgeous typography across all themes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     
     <style>
       :root {
@@ -173,24 +170,24 @@
   <body class="theme-common">
     <div class="hero-header">
       <h1>IntelliCharts Interactive Dashboard</h1>
-      <p>Prueba el diseño responsivo (Grid Layout) y haz clic para el filtrado cruzado.</p>
+      <p>Test the responsive design (Grid Layout) and click to enable cross-filtering.</p>
     </div>
 
     <!-- Frosted theme switcher panel -->
     <div class="control-panel">
       <div class="control-info">
-        <span>Estilo Activo: <strong id="current-theme-label" style="text-transform: capitalize;">Common</strong></span>
+        <span>Active Style: <strong id="current-theme-label" style="text-transform: capitalize;">Common</strong></span>
       </div>
       <div class="theme-selector-wrapper">
-        <span class="theme-selector-label">Cambiar Tema:</span>
+        <span class="theme-selector-label">Change Theme:</span>
         <select id="theme-selector" class="theme-select">
-          <option value="common">Common (Por Defecto)</option>
+          <option value="common">Common (Default)</option>
           <option value="minimal">Minimal</option>
-          <option value="modern">Modern (Dark)</option>
-          <option value="3D">Volumetric 3D</option>
-          <option value="glass">Glassmorphism</option>
-          <option value="elegant">Elegant Luxury</option>
-          <option value="neon">Neon Cyberpunk</option>
+          <option value="modern">Modern</option>
+          <option value="3D">3D</option>
+          <option value="glass">Glass</option>
+          <option value="elegant">Elegant</option>
+          <option value="neon">Neon</option>
         </select>
       </div>
     </div>
