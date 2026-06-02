@@ -1,0 +1,59 @@
+{
+  "name": "intellicharts",
+  "version": "1.0.0",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/intellicharts.umd.cjs",
+  "scripts": {
+    "test": "vitest",
+    "dev": "vite",
+    "build": "vite build && tsc"
+  },
+  "keywords": [
+    "echarts",
+    "dashboard",
+    "charts",
+    "react",
+    "cross-filtering",
+    "grid"
+  ],
+  "author": "intellicharts",
+  "license": "MIT",
+  "description": "Dynamic interactive charting library with built-in cross-filtering and grid layout",
+  "dependencies": {
+    "echarts": "^6.1.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "^6.0.3",
+    "vite": "^6.4.2",
+    "vitest": "^4.1.7"
+  },
+  "type": "module",
+  "module": "./dist/intellicharts.js",
+  "exports": {
+    ".": {
+      "import": "./dist/intellicharts.js",
+      "require": "./dist/intellicharts.umd.cjs"
+    },
+    "./react": {
+      "import": "./dist/react.js",
+      "require": "./dist/react.umd.cjs"
+    }
+  },
+  "types": "./dist/index.d.ts"
+}

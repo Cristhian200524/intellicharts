@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IntelliCharts Interactive Dashboard</title>
+    <!-- Google Fonts for gorgeous typography across all themes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --body-bg: #f8fafc;
+        --text-color: #0f172a;
+        --accent-color: #6366f1;
+        --panel-bg: rgba(255, 255, 255, 0.85);
+        --panel-border: rgba(226, 232, 240, 0.8);
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, sans-serif;
+        background: var(--body-bg);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        box-sizing: border-box;
+        transition: background 0.4s ease, color 0.4s ease;
+      }
+
+      /* Body & panel backgrounds matching themes */
+      body.theme-common {
+        --body-bg: #f1f5f9;
+        --text-color: #0f172a;
+        --panel-bg: rgba(255, 255, 255, 0.9);
+        --panel-border: rgba(226, 232, 240, 0.9);
+      }
+      body.theme-minimal {
+        --body-bg: #fafafa;
+        --text-color: #18181b;
+        --panel-bg: #ffffff;
+        --panel-border: #e4e4e7;
+      }
+      body.theme-modern {
+        --body-bg: #0f0f1c;
+        --text-color: #f1f5f9;
+        --panel-bg: rgba(30, 30, 53, 0.85);
+        --panel-border: rgba(255, 255, 255, 0.08);
+      }
+      body.theme-3D {
+        --body-bg: #e2e8f0;
+        --text-color: #1e293b;
+        --panel-bg: #e2e8f0;
+        --panel-border: rgba(255, 255, 255, 0.4);
+      }
+      body.theme-glass {
+        --body-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+        --text-color: rgba(255, 255, 255, 0.9);
+        --panel-bg: rgba(255, 255, 255, 0.08);
+        --panel-border: rgba(255, 255, 255, 0.15);
+      }
+      body.theme-elegant {
+        --body-bg: #070c14;
+        --text-color: #f1e7d0;
+        --panel-bg: rgba(14, 22, 38, 0.85);
+        --panel-border: rgba(212, 175, 55, 0.25);
+      }
+
+      .hero-header {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px 10px 20px;
+        text-align: center;
+      }
+      .hero-header h1 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.6rem;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+      }
+      .hero-header p {
+        font-size: 1.05rem;
+        color: #64748b;
+        margin: 0 0 20px 0;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.5;
+      }
+
+      /* Clean frosted theme switcher header */
+      .control-panel {
+        max-width: 1200px;
+        margin: 0 auto 30px auto;
+        padding: 14px 24px;
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-sizing: border-box;
+        transition: background 0.4s ease, border 0.4s ease;
+      }
+      .control-info {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .theme-selector-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .theme-selector-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #64748b;
+      }
+      .theme-select {
+        appearance: none;
+        background-color: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 6px 32px 6px 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: inherit;
+        cursor: pointer;
+        outline: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 14px;
+        transition: background 0.4s ease, border 0.4s ease;
+      }
+
+      /* Dark style overrides for options dropdown */
+      .theme-select option {
+        background-color: #ffffff;
+        color: #0f172a;
+      }
+      body.theme-modern .theme-select option,
+      body.theme-glass .theme-select option,
+      body.theme-elegant .theme-select option {
+        background-color: #0f121d;
+        color: #f1f5f9;
+      }
+
+      #dashboard-root {
+        max-width: 1200px;
+        margin: 0 auto 50px auto;
+        padding: 0 20px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body class="theme-common">
+    <div class="hero-header">
+      <h1>IntelliCharts Interactive Dashboard</h1>
+      <p>Prueba el diseño responsivo (Grid Layout) y haz clic para el filtrado cruzado.</p>
+    </div>
+
+    <!-- Frosted theme switcher panel -->
+    <div class="control-panel">
+      <div class="control-info">
+        <span>Estilo Activo: <strong id="current-theme-label" style="text-transform: capitalize;">Common</strong></span>
+      </div>
+      <div class="theme-selector-wrapper">
+        <span class="theme-selector-label">Cambiar Tema:</span>
+        <select id="theme-selector" class="theme-select">
+          <option value="common">Common (Por Defecto)</option>
+          <option value="minimal">Minimal</option>
+          <option value="modern">Modern (Dark)</option>
+          <option value="3D">Volumetric 3D</option>
+          <option value="glass">Glassmorphism</option>
+          <option value="elegant">Elegant Luxury</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dashboard-root"></div>
+    
+    <script type="module" src="/example/main.ts"></script>
+  </body>
+</html>
