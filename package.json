@@ -1,6 +1,6 @@
 {
   "name": "intellicharts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "files": [
     "dist",
     "README.md"
@@ -47,10 +47,12 @@
   "module": "./dist/intellicharts.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/intellicharts.js",
       "require": "./dist/intellicharts.umd.cjs"
     },
     "./react": {
+      "types": "./dist/react.d.ts",
       "import": "./dist/react.js",
       "require": "./dist/react.umd.cjs"
     }

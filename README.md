@@ -153,6 +153,7 @@ export default function App() {
 
 | Version | Description / Key Additions |
 | :--- | :--- |
+| **`1.0.2`** | Improvements in themes and fonts. |
 | **`1.0.1`** | Support for filter dimming and new chart control methods. |
 | **`1.0.0`** | Initial release of IntelliCharts. Includes synchronized cross-filtering, automatic responsive grid layouts, native KPI card support with ellipsis title truncation, fluid CSS typography, React wrappers, and 6 built-in visual themes. |
 
