@@ -102,6 +102,10 @@ export class Chart {
     this.container.style.borderRadius = styles.containerBorderRadius;
     this.container.style.boxShadow = styles.containerBoxShadow;
     this.container.style.transition = styles.containerTransition;
+    this.container.style.color = styles.textColor;
+    if (styles.fontFamily) {
+      this.container.style.fontFamily = styles.fontFamily;
+    }
 
     if (styles.containerBackdropFilter) {
       this.container.style.backdropFilter = styles.containerBackdropFilter;
@@ -234,16 +238,35 @@ export class Chart {
       const totalValue = values.reduce((sum, val) => sum + val, 0);
       const displayValue = this.config.valueFormatter ? this.config.valueFormatter(totalValue) : String(totalValue);
       const valueColor = this.config.colors ? this.config.colors[0] : t.cardValueColor;
-      const cardFont = (t.cardFontFamily ?? 'sans-serif').replace(/"/g, "'");
+      const cardFont = (t.fontFamily ?? 'sans-serif').replace(/"/g, "'");
 
-      this.container.innerHTML = `
-        <div class="card-title" style="font-size: clamp(0.85rem, 2.5vw, 1.05rem); font-weight: 600; color: ${t.cardTitleColor}; font-family: ${cardFont}; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
-          ${this.config.title || ''}
-        </div>
-        <div class="card-value" style="font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 800; color: ${valueColor}; font-family: ${cardFont}; text-align: center; text-shadow: ${theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.3s ease;">
-          ${displayValue}
-        </div>
-      `;
+      let titleEl = this.container.querySelector('.card-title') as HTMLElement;
+      let valueEl = this.container.querySelector('.card-value') as HTMLElement;
+
+      if (!titleEl || !valueEl) {
+        this.container.innerHTML = `
+          <div class="card-title" style="font-size: clamp(0.85rem, 2.5vw, 1.05rem); font-weight: 600; color: ${t.cardTitleColor}; font-family: ${cardFont}; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+            ${this.config.title || ''}
+          </div>
+          <div class="card-value" style="font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 800; color: ${valueColor}; font-family: ${cardFont}; text-align: center; text-shadow: ${theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;">
+            ${displayValue}
+          </div>
+        `;
+      } else {
+        titleEl.style.fontFamily = cardFont;
+        titleEl.style.color = t.cardTitleColor;
+        valueEl.style.fontFamily = cardFont;
+        valueEl.style.textShadow = theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none';
+
+        valueEl.style.opacity = '0.2';
+        valueEl.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          valueEl.innerText = displayValue;
+          valueEl.style.color = valueColor;
+          valueEl.style.opacity = '1';
+          valueEl.style.transform = 'scale(1)';
+        }, 150);
+      }
       return;
     }
 
@@ -531,14 +554,24 @@ export class Chart {
         } else if (s.type === 'line') {
           return {
             ...s,
+            ...t.extraLineSymbolStyle,
             lineStyle: {
               ...t.extraLineStyle,
               ...s.lineStyle
             },
             areaStyle: s.areaStyle ?? t.extraAreaStyle
           };
+        } else if (s.type === 'radar') {
+          return {
+            ...s,
+            data: s.data.map((item: any) => ({
+              ...item,
+              ...t.extraRadarStyle
+            }))
+          };
         } else if (s.type === 'pie' || s.type === 'funnel') {
           const useStyling = theme === 'modern' || theme === 'glass' || theme === 'elegant';
+          const extraStyle = s.type === 'pie' ? t.extraPieItemStyle : t.extraFunnelItemStyle;
           return {
             ...s,
             itemStyle: {
@@ -549,6 +582,7 @@ export class Chart {
                   ? 'rgba(255, 255, 255, 0.15)'
                   : (theme === 'elegant' ? '#060b13' : 'none')),
               borderWidth: useStyling ? 2 : 0,
+              ...extraStyle,
               ...s.itemStyle
             }
           };
@@ -556,6 +590,12 @@ export class Chart {
         return s;
       });
     }
+
+    option.animation = true;
+    option.animationDuration = 400;
+    option.animationDurationUpdate = 400;
+    option.animationEasing = 'cubicOut';
+    option.animationEasingUpdate = 'cubicOut';
 
     this.instance.setOption(option, true);
   }

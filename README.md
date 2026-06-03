@@ -10,7 +10,7 @@ IntelliCharts is a library for creating interactive dashboards. It connects mult
 | **Responsive Grid** | Automatically arranges charts in a grid that adapts to the screen size. It formats for desktops (multi-column), tablets (2 columns), and mobile phones (1 column). |
 | **KPI Metric Cards** | Displays key metrics and aggregated values in KPI cards. |
 | **Automatic Percentages** | Optionally converts chart values into percentages calculated dynamically against the currently filtered total. |
-| **Built-in Themes** | Features 7 visual styles (`common`, `minimal`, `modern`, `3D`, `glass`, `elegant`, `neon`) that set backgrounds, borders, colors, shadows, and fonts globally or individually. |
+| **Built-in Themes** | Features 8 visual styles (`common`, `minimal`, `modern`, `3D`, `glass`, `elegant`, `neon`, `sketch`) that set backgrounds, borders, colors, shadows, and fonts globally or individually. |
 | **React Support** | Provides declarative components ready to use in React projects. |
 
 ## Installation
@@ -127,6 +127,7 @@ export default function App() {
 - **`glass`**: Frosted glass panels, translucent borders, and pastel colors.
 - **`elegant`**: Dark style with gold borders, cream text, and jewel-toned charts.
 - **`neon`**: Cyberpunk dark gradients, cyan borders, and neon colors.
+- **`sketch`**: Hand-drawn pencil/ink sketch style on warm paper.
 
 ## API Reference
 
@@ -153,6 +154,7 @@ export default function App() {
 
 | Version | Description / Key Additions |
 | :--- | :--- |
+| **`1.0.3`** | Added `sketch` theme and fixed chart theme isolation. |
 | **`1.0.2`** | Improvements in themes and fonts. |
 | **`1.0.1`** | Support for filter dimming and new chart control methods. |
 | **`1.0.0`** | Initial release of IntelliCharts. Includes synchronized cross-filtering, automatic responsive grid layouts, native KPI card support with ellipsis title truncation, fluid CSS typography, React wrappers, and 6 built-in visual themes. |

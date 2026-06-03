@@ -1,7 +1,7 @@
 /**
  * Supported theme names in the library.
  */
-export type ChartTheme = 'minimal' | 'common' | 'modern' | '3D' | 'glass' | 'elegant' | 'neon';
+export type ChartTheme = 'minimal' | 'common' | 'modern' | '3D' | 'glass' | 'elegant' | 'neon' | 'sketch';
 
 /**
  * Styling options for a visual theme.
@@ -29,8 +29,6 @@ export interface ThemeStyles {
   cardTitleColor: string;
   /** CSS numerical value color applied to KPI text card widgets */
   cardValueColor: string;
-  /** CSS font-family applied to KPI text card title and values */
-  cardFontFamily?: string;
   /** Array of hex colors or linear gradient definitions cycled by ECharts series */
   echartsColors: any[];
   /** Default typography color used for labels, legend, and axis texts in ECharts */
@@ -55,6 +53,14 @@ export interface ThemeStyles {
   extraLineStyle?: any;
   /** Theme-specific areaStyle gradient overlays merged directly into line series */
   extraAreaStyle?: any;
+  /** Theme-specific itemStyle overrides merged directly into pie series */
+  extraPieItemStyle?: any;
+  /** Theme-specific itemStyle overrides merged directly into funnel series */
+  extraFunnelItemStyle?: any;
+  /** Theme-specific symbol and itemStyle overrides merged directly into line series */
+  extraLineSymbolStyle?: any;
+  /** Theme-specific symbol, line, and area overrides merged directly into radar series data items */
+  extraRadarStyle?: any;
   /** CSS background property value for the parent dashboard grid container */
   dashboardBackground?: string;
   /** CSS text color property value for the parent dashboard grid container */
@@ -75,7 +81,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: '#666666',
     cardValueColor: '#333333',
-    cardFontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     echartsColors: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
     textColor: '#333333',
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
@@ -99,7 +104,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'none',
     cardTitleColor: '#777777',
     cardValueColor: '#1a1a1a',
-    cardFontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     echartsColors: ['#242424', '#555555', '#888888', '#aaaaaa', '#cccccc'],
     textColor: '#242424',
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
@@ -122,7 +126,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-4px) scale(1.01)',
     cardTitleColor: '#94a3b8',
     cardValueColor: '#ffffff',
-    cardFontFamily: 'Outfit, Poppins, Inter, system-ui, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -186,7 +189,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-4px)',
     cardTitleColor: '#4a5568',
     cardValueColor: '#2b6cb0',
-    cardFontFamily: 'Montserrat, system-ui, -apple-system, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -242,7 +244,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: 'rgba(255, 255, 255, 0.7)',
     cardValueColor: '#ffffff',
-    cardFontFamily: 'Plus Jakarta Sans, Poppins, system-ui, -apple-system, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -294,7 +295,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-3px)',
     cardTitleColor: '#c5a059',
     cardValueColor: '#f3e7c4',
-    cardFontFamily: '"Playfair Display", Georgia, serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -348,7 +348,6 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: '#00f2fe',
     cardValueColor: '#ff007f',
-    cardFontFamily: 'Outfit, Poppins, Inter, system-ui, sans-serif',
     echartsColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -390,5 +389,80 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     },
     dashboardBackground: 'linear-gradient(135deg, #0a0813 0%, #05040a 100%)',
     dashboardTextColor: '#e2e8f0'
+  },
+  sketch: {
+    containerBackground: '#faf9f6',
+    containerBorder: '2px solid #2b2b2b',
+    containerBorderRadius: '8px',
+    containerBoxShadow: '4px 4px 0px #2b2b2b',
+    containerTransition: 'all 0.2s ease-in-out',
+    containerHoverBoxShadow: '6px 6px 0px #2b2b2b',
+    containerHoverTransform: 'translate(-2px, -2px)',
+    containerHoverBorder: '2px solid #1a1a1a',
+    cardTitleColor: '#4a4a4a',
+    cardValueColor: '#2b2b2b',
+    echartsColors: ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#319795'],
+    textColor: '#2b2b2b',
+    fontFamily: '"Architects Daughter", "Kalam", "Comic Sans MS", cursive',
+    gridLineColor: '#cbd5e0',
+    gridLineType: 'dashed',
+    axisLineColor: '#2b2b2b',
+    tooltipBg: '#faf9f6',
+    tooltipBorderColor: '#2b2b2b',
+    tooltipTextColor: '#2b2b2b',
+    extraBarItemStyle: {
+      borderColor: '#2b2b2b',
+      borderWidth: 2,
+      shadowBlur: 0,
+      shadowColor: '#2b2b2b',
+      shadowOffsetX: 2,
+      shadowOffsetY: 2
+    },
+    extraLineStyle: {
+      smooth: true,
+      width: 3
+    },
+    extraPieItemStyle: {
+      borderRadius: 4,
+      borderColor: '#2b2b2b',
+      borderWidth: 2,
+      shadowOffsetX: 3,
+      shadowOffsetY: 3,
+      shadowBlur: 0,
+      shadowColor: '#2b2b2b'
+    },
+    extraFunnelItemStyle: {
+      borderRadius: 4,
+      borderColor: '#2b2b2b',
+      borderWidth: 2,
+      shadowOffsetX: 3,
+      shadowOffsetY: 3,
+      shadowBlur: 0,
+      shadowColor: '#2b2b2b'
+    },
+    extraLineSymbolStyle: {
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: {
+        borderWidth: 2,
+        borderColor: '#2b2b2b'
+      }
+    },
+    extraRadarStyle: {
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: {
+        borderWidth: 2,
+        borderColor: '#2b2b2b'
+      },
+      lineStyle: {
+        width: 3
+      },
+      areaStyle: {
+        opacity: 0.15
+      }
+    },
+    dashboardBackground: '#f5f2eb',
+    dashboardTextColor: '#2b2b2b'
   }
 };
