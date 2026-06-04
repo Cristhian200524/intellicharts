@@ -77,6 +77,17 @@ export class Chart {
   }
 
   /**
+   * Sets and applies a visual theme to this chart, updating its container and redrawing it.
+   */
+  public setTheme(theme: ChartTheme) {
+    this.setResolvedTheme(theme);
+    this.applyContainerTheme(theme);
+    if (this.lastData.length > 0) {
+      this.render(this.lastData);
+    }
+  }
+
+  /**
    * Resolves the theme to render, giving priority to local config.
    */
   public getResolvedTheme(): ChartTheme {
