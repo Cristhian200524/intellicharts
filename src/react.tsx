@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import { Dashboard as IntelliDashboard, DashboardConfig } from './Dashboard';
 import { Chart as IntelliCharts, ChartConfig } from './Chart';
+import { ChartTheme } from './theme';
+import { autogenerate as intelliAutogenerate, DataType } from './autogenerate';
+
 
 /**
  * Shared context holding the parent Dashboard instance.
@@ -103,3 +106,70 @@ export const Chart: React.FC<ChartProps> = ({ data, className, style, ...config 
 
   return <div ref={containerRef} className={className} style={{ width: '100%', height: '300px', ...style }} />;
 };
+
+/**
+ * Properties for the AutoDashboard React component wrapper.
+ */
+export interface AutoDashboardProps {
+  /** Array of raw objects or CSV string representing the dataset */
+  data: any[] | string;
+  /** Optional schema overrides to explicitly specify DataTypes for columns */
+  schema?: Record<string, DataType>;
+  /** Default visual theme applied to children charts */
+  theme?: ChartTheme;
+  /** Maximum number of grid columns on desktop layouts */
+  columns?: number;
+  /** Gap space between grid items (e.g., '20px') */
+  gap?: string;
+  /** Base height spanned by a single grid row */
+  rowHeight?: string;
+  /** Optional custom CSS class for styling the container */
+  className?: string;
+  /** Optional custom inline CSS styles */
+  style?: React.CSSProperties;
+}
+
+/**
+ * React Component that automatically generates and renders a complete dashboard layout.
+ */
+export const AutoDashboard: React.FC<AutoDashboardProps> = ({
+  data,
+  schema,
+  theme,
+  columns,
+  gap,
+  rowHeight,
+  className,
+  style
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dashboardInstance = useRef<IntelliDashboard | null>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+      const db = intelliAutogenerate(
+        containerRef.current,
+        data,
+        schema,
+        { theme, columns, gap, rowHeight }
+      );
+      dashboardInstance.current = db;
+
+      return () => {
+        if (dashboardInstance.current) {
+          dashboardInstance.current.removeAllCharts();
+        }
+      };
+    }
+  }, [data, schema, theme, columns, gap, rowHeight]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ width: '100%', minHeight: '500px', ...style }}
+    />
+  );
+};
+

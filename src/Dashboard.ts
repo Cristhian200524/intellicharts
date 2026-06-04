@@ -2,6 +2,8 @@ import { Chart, Filter } from './Chart';
 import { ChartTheme, THEMES } from './theme';
 import { parseCSV } from './csv';
 import { injectGoogleFonts } from './fonts';
+import { autogenerate, DataType } from './autogenerate';
+
 
 /**
  * Configuration options for the Dashboard layout engine.
@@ -31,6 +33,24 @@ export class Dashboard {
   private data: any[] = [];
   /** Array of currently active global dimension filters */
   private activeFilters: Filter[] = [];
+
+  /**
+   * Automatically creates, structures, and mounts a populated dashboard container.
+   *
+   * @param container The parent DOM element to render the Dashboard into.
+   * @param data Array of records or a raw CSV string.
+   * @param schema Optional schema overrides to explicitly specify DataTypes for columns.
+   * @param config Optional Dashboard layout and theme configurations.
+   * @returns Instantiated and fully rendered Dashboard wrapper.
+   */
+  public static autogenerate(
+    container: HTMLElement,
+    data: any[] | string,
+    schema?: Record<string, DataType>,
+    config?: DashboardConfig
+  ): Dashboard {
+    return autogenerate(container, data, schema, config);
+  }
 
   constructor(container: HTMLElement, config?: DashboardConfig) {
     injectGoogleFonts();
@@ -67,6 +87,15 @@ export class Dashboard {
       }
     });
     observer.observe(this.container);
+  }
+
+  /**
+   * Returns the dashboard layout and theme configuration.
+   *
+   * @returns DashboardConfig settings.
+   */
+  public getConfig(): DashboardConfig {
+    return this.config;
   }
 
   /**
