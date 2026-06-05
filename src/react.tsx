@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
-import { Dashboard as IntelliDashboard, DashboardConfig } from './Dashboard';
-import { Chart as IntelliCharts, ChartConfig } from './Chart';
+import { Dashboard as IntelliDashboard } from './dashboard/Dashboard';
+import { DashboardConfig } from './dashboard/types';
+import { Chart as IntelliCharts } from './chart/Chart';
+import { ChartConfig } from './chart/types';
 import { ChartTheme } from './theme';
 import { autogenerate as intelliAutogenerate, DataType } from './autogenerate';
 
@@ -33,11 +35,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, children, className,
   const initialized = useRef(false);
 
   useEffect(() => {
+    let db: IntelliDashboard | null = null;
     if (containerRef.current && !initialized.current) {
-      const db = new IntelliDashboard(containerRef.current, config);
+      db = new IntelliDashboard(containerRef.current, config);
       setDashboard(db);
       initialized.current = true;
     }
+    return () => {
+      if (db) {
+        db.dispose();
+        initialized.current = false;
+      }
+    };
   }, [config]);
 
   useEffect(() => {
@@ -79,12 +88,13 @@ export const Chart: React.FC<ChartProps> = ({ data, className, style, ...config 
   const initialized = useRef(false);
 
   useEffect(() => {
+    let chart: IntelliCharts | null = null;
     if (dashboard && !initialized.current) {
-      const chart = new IntelliCharts(config);
+      chart = new IntelliCharts(config);
       dashboard.addChart(chart);
       initialized.current = true;
     } else if (!dashboard && containerRef.current && !initialized.current) {
-      const chart = new IntelliCharts(config);
+      chart = new IntelliCharts(config);
       chart.mount(containerRef.current);
       chartInstance.current = chart;
       if (data) {
@@ -92,6 +102,15 @@ export const Chart: React.FC<ChartProps> = ({ data, className, style, ...config 
       }
       initialized.current = true;
     }
+
+    return () => {
+      if (chart && dashboard) {
+        dashboard.removeChart(chart);
+      } else if (chartInstance.current && !dashboard) {
+        chartInstance.current.dispose();
+      }
+      initialized.current = false;
+    };
   }, [dashboard, config]);
 
   useEffect(() => {

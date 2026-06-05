@@ -1,5 +1,7 @@
-import { Dashboard, DashboardConfig } from './Dashboard';
-import { Chart, ChartConfig } from './Chart';
+import { Dashboard } from './dashboard/Dashboard';
+import { DashboardConfig } from './dashboard/types';
+import { Chart } from './chart/Chart';
+import { ChartConfig } from './chart/types';
 import { parseCSV } from './csv';
 
 /**

@@ -1,23 +1,10 @@
-import { Chart, Filter } from './Chart';
-import { ChartTheme, THEMES } from './theme';
-import { parseCSV } from './csv';
-import { injectGoogleFonts } from './fonts';
-import { autogenerate, DataType } from './autogenerate';
-
-
-/**
- * Configuration options for the Dashboard layout engine.
- */
-export interface DashboardConfig {
-  /** Maximum number of grid columns on desktop layouts */
-  columns?: number;
-  /** Gap space between grid items (e.g., '20px') */
-  gap?: string;
-  /** Base height spanned by a single grid row */
-  rowHeight?: string;
-  /** Default visual theme applied to children charts */
-  theme?: ChartTheme;
-}
+import { Chart } from '../chart/Chart';
+import { Filter } from '../chart/types';
+import { ChartTheme, THEMES } from '../theme';
+import { parseCSV } from '../csv';
+import { injectGoogleFonts } from '../fonts';
+import { autogenerate, DataType } from '../autogenerate';
+import { DashboardConfig } from './types';
 
 /**
  * The Dashboard manages multiple charts in a dynamic responsive CSS Grid.
@@ -33,6 +20,8 @@ export class Dashboard {
   private data: any[] = [];
   /** Array of currently active global dimension filters */
   private activeFilters: Filter[] = [];
+  /** ResizeObserver instance for handling container resizing */
+  private resizeObserver?: ResizeObserver;
 
   /**
    * Automatically creates, structures, and mounts a populated dashboard container.
@@ -62,7 +51,7 @@ export class Dashboard {
     this.container.style.gap = this.config.gap!;
     this.applyDashboardTheme(this.config.theme ?? 'common');
 
-    const observer = new ResizeObserver(entries => {
+    this.resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
         const width = entry.contentRect.width;
         if (width < 576) {
@@ -86,7 +75,7 @@ export class Dashboard {
         }
       }
     });
-    observer.observe(this.container);
+    this.resizeObserver.observe(this.container);
   }
 
   /**
@@ -230,6 +219,17 @@ export class Dashboard {
     chartsCopy.forEach(chart => this.removeChart(chart));
     this.charts = [];
     this.container.innerHTML = '';
+  }
+
+  /**
+   * Cleans up the dashboard by disposing of all child charts, disconnecting resize observers, and clearing listeners.
+   */
+  public dispose() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = undefined;
+    }
+    this.removeAllCharts();
   }
 
   /**
