@@ -241,6 +241,13 @@ export class Dashboard {
   }
 
   /**
+   * Returns a copy of the currently active global dimension filters.
+   */
+  public getActiveFilters(): Filter[] {
+    return [...this.activeFilters];
+  }
+
+  /**
    * Replaces an existing chart with a new one in-place, reusing the DOM slot and applying layout updates.
    */
   public replaceChart(oldChart: Chart, newChart: Chart) {
