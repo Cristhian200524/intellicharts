@@ -233,6 +233,14 @@ export class Dashboard {
   }
 
   /**
+   * Clears all active global cross-filtering selections and updates all charts to display raw data.
+   */
+  public clearFilters() {
+    this.activeFilters = [];
+    this.updateAllCharts();
+  }
+
+  /**
    * Replaces an existing chart with a new one in-place, reusing the DOM slot and applying layout updates.
    */
   public replaceChart(oldChart: Chart, newChart: Chart) {
