@@ -33,6 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, children, className,
   const containerRef = useRef<HTMLDivElement>(null);
   const [dashboard, setDashboard] = useState<IntelliDashboard | null>(null);
   const initialized = useRef(false);
+  const configKey = `${config.columns}-${config.gap}-${config.rowHeight}-${config.theme}`;
 
   useEffect(() => {
     let db: IntelliDashboard | null = null;
@@ -47,7 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, children, className,
         initialized.current = false;
       }
     };
-  }, [config]);
+  }, [configKey]);
 
   useEffect(() => {
     if (dashboard && data) {
@@ -86,6 +87,7 @@ export const Chart: React.FC<ChartProps> = ({ data, className, style, ...config 
   const containerRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<IntelliCharts | null>(null);
   const initialized = useRef(false);
+  const configKey = `${config.type}-${config.dimension}-${config.measure}-${config.title}-${config.asPercentage}-${config.theme}-${config.column}-${config.widthColumns}-${config.heightRows}`;
 
   useEffect(() => {
     let chart: IntelliCharts | null = null;
@@ -111,7 +113,7 @@ export const Chart: React.FC<ChartProps> = ({ data, className, style, ...config 
       }
       initialized.current = false;
     };
-  }, [dashboard, config]);
+  }, [dashboard, configKey]);
 
   useEffect(() => {
     if (!dashboard && chartInstance.current && data) {
