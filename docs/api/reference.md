@@ -39,12 +39,12 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | :--- | :--- | :--- |
 | **`constructor`** | `(config: ChartConfig)` | Defines a chart configuration. |
 | **`mount`** | `(container: HTMLElement)` | Mounts the chart container dynamically (used for standalone rendering outside a Dashboard). |
-| **`render`** | `(data: any[] \| string, activeFilters?: Filter[])` | Aggregates and renders the chart visually using ECharts. |
+| **`render`** | `(data: any[] \| string, activeFilters?: Filter[])` | Aggregates and renders the chart visually using the custom Canvas engine. |
 | **`setTheme`** | `(theme: ChartTheme)` | Updates the theme dynamically specifically for this chart and triggers a re-render. |
 | **`onFilter`** | `(cb: (filter: Filter) => void)` | Registers a category click callback for cross-filtering. |
 | **`getContainer`** | `()` | Returns the HTMLElement wrapper container of the chart. |
 | **`getConfig`** | `()` | Returns the active `ChartConfig` settings of the chart. |
-| **`dispose`** | `()` | Cleans up the chart by disposing of the ECharts instance, disconnecting its resize observer, and removing mouse event listeners. |
+| **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, disconnecting its resize observer, and removing mouse event listeners. |
 | **`resizeObserver`** | `ResizeObserver` | **(Private)** Instance wrapper that monitors container resizing and triggers chart re-rendering. |
 
 

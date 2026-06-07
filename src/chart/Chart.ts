@@ -1,31 +1,41 @@
-import * as echarts from 'echarts';
 import { ChartTheme, THEMES } from '../theme';
 import { parseCSV } from '../csv';
 import { ChartConfig, Filter } from './types';
-import { buildEChartsOption } from './options';
+import { Animator, TransitionManager } from './animation';
+import { BaseRenderer } from './renderers/BaseRenderer';
+import { BarRenderer } from './renderers/BarRenderer';
+import { LineRenderer } from './renderers/LineRenderer';
+import { PieRenderer } from './renderers/PieRenderer';
+import { RadarRenderer } from './renderers/RadarRenderer';
+import { FunnelRenderer } from './renderers/FunnelRenderer';
+import { getNiceTicks, updateTooltip } from './renderers/canvasUtils';
+import { getColorDef, resolveColorString } from './renderers/themeHelpers';
 
 /**
- * Represents a single chart widget within the dashboard wrapper.
+ * Handles chart widget mounts and draws.
  */
 export class Chart {
-  /** The ECharts instance wrapper for canvas rendering */
-  private instance?: echarts.ECharts;
-  /** Local configuration options passed in constructor */
   private config: ChartConfig;
-  /** Callback triggered when a data point is clicked */
   private filterCallback?: (filter: Filter) => void;
-  /** Column span in the dashboard grid layout */
   public widthColumns: number;
-  /** Row span in the dashboard grid layout */
   public heightRows: number;
-  /** Cache of the last rendered dataset for resize and theme redraws */
   private lastData: any[] = [];
-  /** The DOM container element the widget is mounted in */
   private container?: HTMLElement;
-  /** Theme resolved by parent propagation or local config */
   private resolvedTheme?: ChartTheme;
-  /** ResizeObserver instance for handling container resizing */
   private resizeObserver?: ResizeObserver;
+
+  // Custom canvas engine properties
+  private canvas?: HTMLCanvasElement;
+  private ctx?: CanvasRenderingContext2D;
+  private animator: Animator = new Animator();
+  private transitionManager: TransitionManager = new TransitionManager();
+  private activeRenderer?: BaseRenderer;
+  private tooltipEl?: HTMLElement;
+  private hoveredIndex: number | null = null;
+  private categories: string[] = [];
+  private values: number[] = [];
+  private activeFilters: Filter[] = [];
+  private prevFilters: Filter[] = [];
 
   constructor(config: ChartConfig) {
     this.config = config;
@@ -33,41 +43,26 @@ export class Chart {
     this.heightRows = config.heightRows ?? 1;
   }
 
-  /**
-   * Sets the visual theme value computed by the dashboard parent.
-   */
   public setResolvedTheme(theme: ChartTheme) {
     this.resolvedTheme = theme;
   }
 
-  /**
-   * Sets and applies a visual theme to this chart, updating its container and redrawing it.
-   */
   public setTheme(theme: ChartTheme) {
     this.setResolvedTheme(theme);
     this.applyContainerTheme(theme);
     if (this.lastData.length > 0) {
-      this.render(this.lastData);
+      this.render(this.lastData, this.activeFilters, true);
     }
   }
 
-  /**
-   * Resolves the theme to render, giving priority to local config.
-   */
   public getResolvedTheme(): ChartTheme {
     return this.resolvedTheme ?? this.config.theme ?? 'common';
   }
 
-  /**
-   * Returns the chart config.
-   */
   public getConfig(): ChartConfig {
     return this.config;
   }
 
-  /**
-   * Applies the background, border, shadow, and backdrop filters of the theme.
-   */
   public applyContainerTheme(theme: ChartTheme) {
     if (!this.container) return;
     const styles = THEMES[theme];
@@ -109,9 +104,6 @@ export class Chart {
     };
   }
 
-  /**
-   * Initial setup rendering core DOM layouts and registering click nodes.
-   */
   public mount(container: HTMLElement) {
     this.container = container;
 
@@ -124,89 +116,179 @@ export class Chart {
       this.container.style.justifyContent = 'center';
       this.container.style.alignItems = 'center';
     } else {
-      if (this.instance) {
-        this.instance.dispose();
-      }
-      this.instance = echarts.init(container);
+      this.canvas = document.createElement('canvas');
+      this.canvas.style.display = 'block';
+      this.canvas.style.width = '100%';
+      this.canvas.style.height = '100%';
+      this.container.appendChild(this.canvas);
+      this.ctx = this.canvas.getContext('2d') || undefined;
 
-      this.instance.on('click', (params) => {
-        if (this.filterCallback && params.name) {
-          this.filterCallback({
-            field: this.config.dimension,
-            value: params.name
-          });
-        }
-      });
+      this.tooltipEl = document.createElement('div');
+      this.tooltipEl.className = 'chart-tooltip';
+      this.tooltipEl.style.position = 'absolute';
+      this.tooltipEl.style.pointerEvents = 'none';
+      this.tooltipEl.style.zIndex = '1000';
+      this.tooltipEl.style.display = 'none';
+      this.tooltipEl.style.transition = 'opacity 0.15s ease';
+      this.container.appendChild(this.tooltipEl);
+
+      this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+      this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
+      this.canvas.addEventListener('click', () => this.handleMouseClick());
 
       this.resizeObserver = new ResizeObserver(() => {
-        this.instance?.resize();
-        // Dynamic re-render to recalculate ECharts dynamic title widths
         if (this.lastData.length > 0) {
-          this.render(this.lastData);
+          // Disable animation transitions during resize events
+          this.render(this.lastData, this.activeFilters, false);
         }
       });
       this.resizeObserver.observe(container);
     }
 
     if (this.lastData.length > 0) {
-      this.render(this.lastData);
+      this.render(this.lastData, this.activeFilters, true);
     }
   }
 
-  /**
-   * Returns the config dimension key.
-   */
+  private drawFrame(progress: number) {
+    if (!this.ctx || !this.canvas || !this.activeRenderer) return;
+
+    const targetYMax = this.calculateYMax(this.values);
+    const currentRatios = this.transitionManager.getInterpolatedRatios(
+      this.categories,
+      this.values,
+      targetYMax,
+      progress
+    );
+
+    const isFirstRender = this.transitionManager.isFirstRender();
+
+    this.activeRenderer.render(
+      this.categories,
+      currentRatios,
+      this.values,
+      targetYMax,
+      progress,
+      isFirstRender,
+      this.hoveredIndex,
+      this.activeFilters,
+      this.prevFilters
+    );
+  }
+
+  private getMouseCoords(e: MouseEvent): { x: number; y: number } {
+    if (!this.canvas) return { x: 0, y: 0 };
+    const rect = this.canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  private handleMouseMove(e: MouseEvent) {
+    if (!this.canvas || !this.activeRenderer || !this.tooltipEl) return;
+
+    const { x, y } = this.getMouseCoords(e);
+    const prevHovered = this.hoveredIndex;
+    this.hoveredIndex = this.activeRenderer.hitTest(x, y, this.categories, this.values);
+
+    this.canvas.style.cursor = this.hoveredIndex !== null ? 'pointer' : 'default';
+
+    if (this.hoveredIndex !== null) {
+      const cat = this.categories[this.hoveredIndex];
+      const val = this.values[this.hoveredIndex];
+      const theme = this.getResolvedTheme();
+      const styles = THEMES[theme];
+
+      let displayVal = '';
+      if (this.config.asPercentage) {
+        displayVal = `${val.toFixed(2)}%`;
+      } else {
+        displayVal = this.config.valueFormatter ? this.config.valueFormatter(val) : val.toLocaleString();
+      }
+
+      const colorDef = getColorDef(this.hoveredIndex, this.config, styles);
+      const tooltipColor = resolveColorString(colorDef);
+
+      updateTooltip(this.tooltipEl, x, y, String(cat), displayVal, styles, tooltipColor);
+      
+      if (prevHovered !== this.hoveredIndex) {
+        this.drawFrame(1.0);
+      }
+    } else {
+      this.tooltipEl.style.display = 'none';
+      if (prevHovered !== null) {
+        this.drawFrame(1.0);
+      }
+    }
+  }
+
+  private handleMouseLeave() {
+    if (this.tooltipEl) {
+      this.tooltipEl.style.display = 'none';
+    }
+    if (this.hoveredIndex !== null) {
+      this.hoveredIndex = null;
+      if (this.canvas) {
+        this.canvas.style.cursor = 'default';
+      }
+      this.drawFrame(1.0);
+    }
+  }
+
+  private handleMouseClick() {
+    if (this.hoveredIndex !== null && this.filterCallback) {
+      this.filterCallback({
+        field: this.config.dimension,
+        value: this.categories[this.hoveredIndex]
+      });
+    }
+  }
+
   public getDimension(): string {
     return this.config.dimension;
   }
 
-  /**
-   * Returns the type identifier.
-   */
   public getType(): string {
     return this.config.type;
   }
 
-  /**
-   * Registers filtering callback triggers.
-   */
   public onFilter(cb: (filter: Filter) => void) {
     this.filterCallback = cb;
   }
 
-  /**
-   * Returns the DOM container element.
-   */
   public getContainer(): HTMLElement | undefined {
     return this.container;
   }
 
-  /**
-   * Cleans up the chart by disposing of the ECharts instance and clearing listeners.
-   */
   public dispose() {
+    this.animator.cancel();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = undefined;
     }
-    if (this.instance) {
-      this.instance.dispose();
-      this.instance = undefined;
+    
+    if (this.canvas && this.container?.contains(this.canvas)) {
+      this.container.removeChild(this.canvas);
+      this.canvas = undefined;
     }
+    if (this.tooltipEl && this.container?.contains(this.tooltipEl)) {
+      this.container.removeChild(this.tooltipEl);
+      this.tooltipEl = undefined;
+    }
+
     if (this.container) {
       this.container.onmouseenter = null;
       this.container.onmouseleave = null;
     }
   }
 
-  /**
-   * Visual render updating aggregations and binding ECharts options.
-   * Supports visual cross-highlighting of active selections (v1.0.1).
-   */
-  public render(data: any[] | string, activeFilters: Filter[] = []) {
+  public render(data: any[] | string, activeFilters: Filter[] = [], animate = true) {
     const parsedData = typeof data === 'string' ? parseCSV(data) : data;
     this.lastData = parsedData;
     data = parsedData;
+    this.prevFilters = [...this.activeFilters];
+    this.activeFilters = [...activeFilters];
     const theme = this.getResolvedTheme();
     const t = THEMES[theme];
 
@@ -248,7 +330,7 @@ export class Chart {
       return;
     }
 
-    if (!this.instance) return;
+    if (!this.container || !this.canvas || !this.ctx) return;
 
     const aggregated = new Map<string, number>();
     for (const row of data) {
@@ -259,19 +341,81 @@ export class Chart {
       }
     }
 
-    let categories = Array.from(aggregated.keys());
-    let values = Array.from(aggregated.values());
+    this.categories = Array.from(aggregated.keys());
+    this.values = Array.from(aggregated.values());
 
     if (this.config.asPercentage) {
-      const total = values.reduce((sum, val) => sum + val, 0);
+      const total = this.values.reduce((sum, val) => sum + val, 0);
       if (total !== 0) {
-        values = values.map(val => Number(((val / total) * 100).toFixed(2)));
+        this.values = this.values.map(val => Number(((val / total) * 100).toFixed(2)));
       }
     }
 
-    const containerWidth = this.container ? this.container.clientWidth : 180;
-    const option = buildEChartsOption(this.config, theme, activeFilters, categories, values, containerWidth);
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    const rect = this.canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = rect.width * dpr;
+    this.canvas.height = rect.height * dpr;
 
-    this.instance.setOption(option, true);
+    this.ctx.resetTransform();
+    this.ctx.scale(dpr, dpr);
+
+    const renderContext = {
+      ctx: this.ctx,
+      width: rect.width,
+      height: rect.height,
+      config: this.config,
+      theme,
+      styles: t,
+      dpr
+    };
+
+    if (this.config.type === 'bar') {
+      this.activeRenderer = new BarRenderer(renderContext);
+    } else if (this.config.type === 'line') {
+      this.activeRenderer = new LineRenderer(renderContext);
+    } else if (this.config.type === 'pie' || this.config.type === 'donut') {
+      this.activeRenderer = new PieRenderer(renderContext);
+    } else if (this.config.type === 'radar') {
+      this.activeRenderer = new RadarRenderer(renderContext);
+    } else if (this.config.type === 'funnel') {
+      this.activeRenderer = new FunnelRenderer(renderContext);
+    }
+
+    this.hoveredIndex = null;
+
+    if (animate) {
+      this.animator.start(450, 
+        (progress) => {
+          this.drawFrame(progress);
+        },
+        () => {
+          const targetYMax = this.calculateYMax(this.values);
+          this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
+        }
+      );
+    } else {
+      this.drawFrame(1.0);
+      const targetYMax = this.calculateYMax(this.values);
+      this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
+    }
+  }
+
+  private calculateYMax(values: number[]): number {
+    const maxVal = Math.max(...values, 0);
+    if (this.config.type === 'bar' || this.config.type === 'line') {
+      let paddedMax = maxVal > 0 ? maxVal * 1.15 : 100;
+      if (this.config.asPercentage) {
+        paddedMax = Math.min(100, paddedMax);
+      }
+      const { max } = getNiceTicks(0, paddedMax, 5);
+      return max;
+    } else if (this.config.type === 'radar') {
+      return maxVal > 0 ? maxVal * 1.15 : 100;
+    } else if (this.config.type === 'funnel') {
+      return maxVal || 100;
+    }
+    return maxVal;
   }
 }

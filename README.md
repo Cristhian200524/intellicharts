@@ -2,6 +2,8 @@
 
 IntelliCharts is a lightweight, interactive charting library for JavaScript, TypeScript, and React. It connects multiple charts to the same dataset so they can interact with each other automatically.
 
+📖 **Official Documentation**: [intellicharts.org](http://www.intellicharts.org/)
+
 ---
 
 ## Documentation
@@ -16,7 +18,7 @@ IntelliCharts is a lightweight, interactive charting library for JavaScript, Typ
 ## Quick Install
 
 ```bash
-npm install intellicharts echarts
+npm install intellicharts
 ```
 
 ## Quick Start Example (Vanilla JS)

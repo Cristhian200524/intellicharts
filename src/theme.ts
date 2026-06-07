@@ -29,23 +29,23 @@ export interface ThemeStyles {
   cardTitleColor: string;
   /** CSS numerical value color applied to KPI text card widgets */
   cardValueColor: string;
-  /** Array of hex colors or linear gradient definitions cycled by ECharts series */
-  echartsColors: any[];
-  /** Default typography color used for labels, legend, and axis texts in ECharts */
+  /** Array of hex colors or linear gradient definitions cycled by chart series */
+  chartColors: any[];
+  /** Default typography color used for labels, legend, and axis texts */
   textColor: string;
-  /** Default font family used in ECharts texts */
+  /** Default font family used in chart texts */
   fontFamily?: string;
-  /** Color applied to internal ECharts grid split lines */
+  /** Color applied to internal grid split lines */
   gridLineColor: string;
-  /** Stroke pattern used for internal ECharts grid split lines */
+  /** Stroke pattern used for internal grid split lines */
   gridLineType: 'solid' | 'dashed' | 'dotted';
-  /** Color applied to ECharts x/y axis boundary lines */
+  /** Color applied to x/y axis boundary lines */
   axisLineColor: string;
-  /** Background color applied to ECharts tooltips */
+  /** Background color applied to tooltips */
   tooltipBg: string;
-  /** Border color applied to ECharts tooltips */
+  /** Border color applied to tooltips */
   tooltipBorderColor: string;
-  /** Typography color applied to ECharts tooltip text content */
+  /** Typography color applied to tooltip text content */
   tooltipTextColor: string;
   /** Theme-specific itemStyle overrides merged directly into bar series */
   extraBarItemStyle?: any;
@@ -81,7 +81,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: '#666666',
     cardValueColor: '#333333',
-    echartsColors: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
+    chartColors: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
     textColor: '#333333',
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     gridLineColor: '#eeeeee',
@@ -104,7 +104,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'none',
     cardTitleColor: '#777777',
     cardValueColor: '#1a1a1a',
-    echartsColors: ['#242424', '#555555', '#888888', '#aaaaaa', '#cccccc'],
+    chartColors: ['#242424', '#555555', '#888888', '#aaaaaa', '#cccccc'],
     textColor: '#242424',
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     gridLineColor: '#f0f0f0',
@@ -126,7 +126,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-4px) scale(1.01)',
     cardTitleColor: '#94a3b8',
     cardValueColor: '#ffffff',
-    echartsColors: [
+    chartColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: '#6366f1' }, { offset: 1, color: '#4f46e5' }]
@@ -164,7 +164,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
       borderRadius: [6, 6, 0, 0]
     },
     extraLineStyle: {
-      smooth: true,
+      smooth: false,
       width: 3
     },
     extraAreaStyle: {
@@ -189,7 +189,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-4px)',
     cardTitleColor: '#4a5568',
     cardValueColor: '#2b6cb0',
-    echartsColors: [
+    chartColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: '#63b3ed' }, { offset: 1, color: '#3182ce' }]
@@ -244,7 +244,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: 'rgba(255, 255, 255, 0.7)',
     cardValueColor: '#ffffff',
-    echartsColors: [
+    chartColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: 'rgba(255, 121, 198, 0.85)' }, { offset: 1, color: 'rgba(255, 121, 198, 0.3)' }]
@@ -295,7 +295,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-3px)',
     cardTitleColor: '#c5a059',
     cardValueColor: '#f3e7c4',
-    echartsColors: [
+    chartColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: '#e5c060' }, { offset: 1, color: '#b89438' }]
@@ -348,7 +348,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverTransform: 'translateY(-2px)',
     cardTitleColor: '#00f2fe',
     cardValueColor: '#ff007f',
-    echartsColors: [
+    chartColors: [
       {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [{ offset: 0, color: '#00f2fe' }, { offset: 1, color: '#4facfe' }]
@@ -401,7 +401,7 @@ export const THEMES: Record<ChartTheme, ThemeStyles> = {
     containerHoverBorder: '2px solid #1a1a1a',
     cardTitleColor: '#4a4a4a',
     cardValueColor: '#2b2b2b',
-    echartsColors: ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#319795'],
+    chartColors: ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#319795'],
     textColor: '#2b2b2b',
     fontFamily: '"Architects Daughter", "Kalam", "Comic Sans MS", cursive',
     gridLineColor: '#cbd5e0',

@@ -197,7 +197,7 @@ export class Dashboard {
   }
 
   /**
-   * Removes a single chart from the dashboard, cleaning up its DOM element and ECharts resources.
+   * Removes a single chart from the dashboard, cleaning up its DOM element and canvas resources.
    */
   public removeChart(chart: Chart) {
     const index = this.charts.indexOf(chart);

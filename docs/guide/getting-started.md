@@ -4,10 +4,10 @@ IntelliCharts is a lightweight charting library designed to create interactive d
 
 ## Installation
 
-Install the library along with its peer dependency, Apache ECharts:
+Install the library:
 
 ```bash
-npm install intellicharts echarts
+npm install intellicharts
 ```
 
 ---

@@ -12,10 +12,9 @@ export default defineConfig({
       fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'umd.cjs'}`,
     },
     rollupOptions: {
-      external: ['echarts', 'react', 'react-dom'],
+      external: ['react', 'react-dom'],
       output: {
         globals: {
-          echarts: 'echarts',
           react: 'React',
           'react-dom': 'ReactDOM'
         }
