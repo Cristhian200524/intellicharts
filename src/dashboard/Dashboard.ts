@@ -88,6 +88,13 @@ export class Dashboard {
   }
 
   /**
+   * Returns the active raw dataset loaded in the dashboard.
+   */
+  public getData(): any[] {
+    return this.data;
+  }
+
+  /**
    * Updates the source dataset and triggers updates on all child charts.
    */
   public setData(data: any[] | string) {
@@ -161,6 +168,35 @@ export class Dashboard {
       }
     }
     this.updateAllCharts();
+  }
+
+  /**
+   * Explicitly sets a global dimension filter and triggers a re-render of all dashboard charts.
+   *
+   * @param field The dimension column key to filter.
+   * @param value The value to apply to the filter.
+   */
+  public setFilter(field: string, value: any): void {
+    const index = this.activeFilters.findIndex(f => f.field === field);
+    if (index >= 0) {
+      this.activeFilters[index].value = value;
+    } else {
+      this.activeFilters.push({ field, value });
+    }
+    this.updateAllCharts();
+  }
+
+  /**
+   * Explicitly removes a global dimension filter and triggers a re-render of all dashboard charts.
+   *
+   * @param field The dimension column key to remove filtering from.
+   */
+  public removeFilter(field: string): void {
+    const index = this.activeFilters.findIndex(f => f.field === field);
+    if (index >= 0) {
+      this.activeFilters.splice(index, 1);
+      this.updateAllCharts();
+    }
   }
 
   private updateAllCharts() {

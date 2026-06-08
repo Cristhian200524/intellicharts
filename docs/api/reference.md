@@ -23,10 +23,12 @@ The main layout and synchronization engine container.
 | **`getChart`** | `(identifier: string \| number)` | Retrieves a chart from the dashboard by index, or by matching its `id`, `dimension` or `title` string. |
 | **`hasChart`** | `(chart: Chart \| string)` | Checks if a chart exists in the dashboard by reference, or by matching its `id`, `dimension` or `title` string. |
 | **`getConfig`** | `()` | Returns the active `DashboardConfig` layout settings. |
+| **`getData`** | `()` | Returns the active raw dataset loaded in the dashboard. |
 | **`clearFilters`** | `()` | Clears all active global cross-filtering selections and updates all charts to display raw data. |
+| **`setFilter`** | `(field: string, value: any)` | Explicitly sets a global dimension filter programmatically. |
+| **`removeFilter`** | `(field: string)` | Explicitly removes a global dimension filter programmatically. |
 | **`getActiveFilters`** | `()` | Returns a copy of the currently active global dimension filters. |
 | **`dispose`** | `()` | Cleans up the dashboard by disposing of all child charts, disconnecting resize observers, and clearing listeners. |
-| **`resizeObserver`** | `ResizeObserver` | **(Private)** Instance wrapper that listens to container dimensions and updates the grid layout columns. |
 
 
 ---
@@ -45,7 +47,6 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | **`getContainer`** | `()` | Returns the HTMLElement wrapper container of the chart. |
 | **`getConfig`** | `()` | Returns the active `ChartConfig` settings of the chart. |
 | **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, disconnecting its resize observer, and removing mouse event listeners. |
-| **`resizeObserver`** | `ResizeObserver` | **(Private)** Instance wrapper that monitors container resizing and triggers chart re-rendering. |
 
 
 ---
