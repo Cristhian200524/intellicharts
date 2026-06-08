@@ -10,6 +10,7 @@ import { RadarRenderer } from './renderers/RadarRenderer';
 import { FunnelRenderer } from './renderers/FunnelRenderer';
 import { getNiceTicks, updateTooltip } from './renderers/canvasUtils';
 import { getColorDef, resolveColorString } from './renderers/themeHelpers';
+import { injectGoogleFonts } from '../fonts';
 
 /**
  * Handles chart widget mounts and draws.
@@ -38,6 +39,7 @@ export class Chart {
   private prevFilters: Filter[] = [];
 
   constructor(config: ChartConfig) {
+    injectGoogleFonts();
     this.config = config;
     this.widthColumns = config.column ?? config.widthColumns ?? 1;
     this.heightRows = config.heightRows ?? 1;
@@ -116,6 +118,9 @@ export class Chart {
       this.container.style.justifyContent = 'center';
       this.container.style.alignItems = 'center';
     } else {
+      if (!this.container.style.height && (!this.container.offsetHeight || this.container.offsetHeight === 0)) {
+        this.container.style.height = '300px';
+      }
       this.canvas = document.createElement('canvas');
       this.canvas.style.display = 'block';
       this.canvas.style.width = '100%';
@@ -400,6 +405,16 @@ export class Chart {
       const targetYMax = this.calculateYMax(this.values);
       this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
     }
+  }
+
+  /** Resizes and redraws the chart manually. */
+  public resize(): void {
+    if (this.lastData.length > 0) this.render(this.lastData, this.activeFilters, false);
+  }
+
+  /** Exports the current chart state as a Base64 image data URL. */
+  public getDataURL(type = 'image/png', options?: any): string | undefined {
+    return this.canvas?.toDataURL(type, options);
   }
 
   private calculateYMax(values: number[]): number {

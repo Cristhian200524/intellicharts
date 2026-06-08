@@ -52,8 +52,8 @@ export abstract class AxisRenderer extends BaseRenderer {
     const currentPaddingLeft = Math.max(30, maxTextWidth + 12);
     this.padding.left = currentPaddingLeft;
 
-    const plotWidth = width - this.padding.left - this.padding.right;
-    const plotHeight = height - this.padding.top - this.padding.bottom;
+    const plotWidth = Math.max(0, width - this.padding.left - this.padding.right);
+    const plotHeight = Math.max(0, height - this.padding.top - this.padding.bottom);
 
     return {
       plotWidth,

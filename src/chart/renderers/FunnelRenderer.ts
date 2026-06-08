@@ -9,7 +9,7 @@ export class FunnelRenderer extends BaseRenderer {
     const { width, height } = this.context;
     const cx = width / 2;
     const plotWidth = width * 0.75;
-    const plotHeight = height - 80;
+    const plotHeight = Math.max(0, height - 80);
     const startY = 60;
     const gap = 3;
 

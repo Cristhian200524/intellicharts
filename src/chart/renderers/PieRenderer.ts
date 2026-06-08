@@ -10,7 +10,7 @@ export class PieRenderer extends BaseRenderer {
     const cx = width / 2;
     const cy = height / 2 + 10;
 
-    const outerRadius = Math.min(width * 0.55, height - 90) / 2;
+    const outerRadius = Math.max(0, Math.min(width * 0.55, height - 90) / 2);
     const isDonut = config.type === 'donut';
     const innerRadius = isDonut ? outerRadius * 0.55 : 0;
 

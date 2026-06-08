@@ -9,7 +9,7 @@ export class RadarRenderer extends BaseRenderer {
     const { width, height } = this.context;
     const cx = width / 2;
     const cy = height / 2 + 15;
-    const maxRadius = Math.min(width, height - 90) / 2 * 0.75;
+    const maxRadius = Math.max(0, Math.min(width, height - 90) / 2 * 0.75);
     return { cx, cy, maxRadius };
   }
 

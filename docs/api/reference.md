@@ -28,6 +28,8 @@ The main layout and synchronization engine container.
 | **`setFilter`** | `(field: string, value: any)` | Explicitly sets a global dimension filter programmatically. |
 | **`removeFilter`** | `(field: string)` | Explicitly removes a global dimension filter programmatically. |
 | **`getActiveFilters`** | `()` | Returns a copy of the currently active global dimension filters. |
+| **`resize`** | `()` | Resizes and redraws all active charts manually. |
+| **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the entire dashboard layout as a single consolidated Base64 image data URL. |
 | **`dispose`** | `()` | Cleans up the dashboard by disposing of all child charts, disconnecting resize observers, and clearing listeners. |
 
 
@@ -46,6 +48,8 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | **`onFilter`** | `(cb: (filter: Filter) => void)` | Registers a category click callback for cross-filtering. |
 | **`getContainer`** | `()` | Returns the HTMLElement wrapper container of the chart. |
 | **`getConfig`** | `()` | Returns the active `ChartConfig` settings of the chart. |
+| **`resize`** | `()` | Resizes and redraws the chart manually. |
+| **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the chart current state as a Base64-encoded image data URL. |
 | **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, disconnecting its resize observer, and removing mouse event listeners. |
 
 
