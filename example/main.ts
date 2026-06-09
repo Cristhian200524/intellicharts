@@ -9,13 +9,26 @@ Food,North,2000
 Food,South,1800
 Electronics,East,900
 Clothing,East,1100
-Food,East,500`;
+Food,East,500
+Toys,North,400
+Toys,South,700
+Toys,East,300
+Books,North,250
+Books,South,350
+Books,East,150
+Garden,North,800
+Garden,South,600
+Garden,East,700
+Automotive,North,900
+Automotive,South,950
+Automotive,East,1000`;
 
 const dashboard = new Dashboard(document.getElementById('dashboard-root')!, {
   columns: 5,
   gap: '20px',
   rowHeight: '140px',
-  theme: 'common'
+  theme: 'common',
+  limitCategories: 4
 });
 
 const chartKPI = new Chart({
@@ -68,9 +81,10 @@ const chartLine = new Chart({
   type: 'line',
   dimension: 'category',
   measure: 'sales',
-  title: 'Sales Trend',
+  title: 'Sales Trend (6 categories)',
   widthColumns: 3,
-  heightRows: 2
+  heightRows: 2,
+  limitCategories: 6
 });
 
 const chartFunnel = new Chart({

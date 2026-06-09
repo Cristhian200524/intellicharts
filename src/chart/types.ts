@@ -28,6 +28,8 @@ export interface ChartConfig {
   asPercentage?: boolean;
   /** Override theme setting for this chart specifically */
   theme?: ChartTheme;
+  /** Limit the number of categories rendered, grouping remaining into 'Others' */
+  limitCategories?: number;
 }
 
 /**

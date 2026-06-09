@@ -26,8 +26,16 @@ export function computeItemOpacity(
   animationProgress: number
 ): number {
   const prevFilter = prevFilters.find(f => f.field === dimension);
-  const wasSelected = !prevFilter || String(category) === String(prevFilter.value);
-  const isSelected = !activeFilter || String(category) === String(activeFilter.value);
+  const checkSelected = (filter: Filter | undefined, cat: string) => {
+    if (!filter) return true;
+    if (Array.isArray(filter.value)) {
+      return filter.value.map(String).includes(String(cat)) || String(cat) === 'Others';
+    }
+    return String(cat) === String(filter.value);
+  };
+
+  const wasSelected = checkSelected(prevFilter, category);
+  const isSelected = checkSelected(activeFilter, category);
   const isHovered = hoveredIndex === index;
 
   const startOpacity = wasSelected ? 1.0 : 0.25;

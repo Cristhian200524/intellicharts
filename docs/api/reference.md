@@ -64,6 +64,7 @@ Layout parameters for the `Dashboard` container:
 - `gap`: (Optional) CSS gap value between grid items (e.g., `'20px'`).
 - `rowHeight`: (Optional) Base height spanned by a single grid row (e.g., `'140px'`).
 - `theme`: (Optional) Default visual theme applied to children charts.
+- `limitCategories`: (Optional) Default category limit for child charts. Extras group under `"Others"`.
 
 ### `ChartConfig`
 
@@ -79,6 +80,7 @@ Parameters for instantiating a `Chart` widget:
 - `heightRows`: Row grid span count (default: `1`).
 - `asPercentage`: (Optional) Convert values into percentages dynamically calculated against the currently filtered total.
 - `theme`: (Optional) Local visual theme override.
+- `limitCategories`: (Optional) Maximum categories to show. Groups extras under `"Others"`. Prioritized over dashboard-level limit.
 
 ---
 

@@ -23,6 +23,9 @@ export class Chart {
   private lastData: any[] = [];
   private container?: HTMLElement;
   private resolvedTheme?: ChartTheme;
+  private resolvedLimitCategories?: number;
+  private othersDetails: { category: string, value: number }[] = [];
+  private rawTotal = 0;
   private resizeObserver?: ResizeObserver;
 
   // Custom canvas engine properties
@@ -43,10 +46,19 @@ export class Chart {
     this.config = config;
     this.widthColumns = config.column ?? config.widthColumns ?? 1;
     this.heightRows = config.heightRows ?? 1;
+    this.resolvedLimitCategories = config.limitCategories;
   }
 
   public setResolvedTheme(theme: ChartTheme) {
     this.resolvedTheme = theme;
+  }
+
+  public setResolvedLimitCategories(limit?: number) {
+    this.resolvedLimitCategories = limit;
+  }
+
+  public getResolvedLimitCategories(): number | undefined {
+    return this.resolvedLimitCategories;
   }
 
   public setTheme(theme: ChartTheme) {
@@ -212,6 +224,24 @@ export class Chart {
         displayVal = this.config.valueFormatter ? this.config.valueFormatter(val) : val.toLocaleString();
       }
 
+      if (cat === 'Others' && this.othersDetails.length > 0) {
+        let breakdown = `<div style="font-size: 11px; margin-top: 6px; border-top: 1px solid ${styles.tooltipBorderColor || 'rgba(0,0,0,0.15)'}; padding-top: 6px; opacity: 0.9;">`;
+        this.othersDetails.forEach(item => {
+          const itemValFormatted = this.config.valueFormatter ? this.config.valueFormatter(item.value) : item.value.toLocaleString();
+          let itemText = itemValFormatted;
+          if (this.config.asPercentage) {
+            const pct = this.rawTotal > 0 ? (item.value / this.rawTotal) * 100 : 0;
+            itemText += ` (${pct.toFixed(2)}%)`;
+          }
+          breakdown += `<div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 2px;">
+            <span>• ${item.category}</span>
+            <span style="font-weight: 600;">${itemText}</span>
+          </div>`;
+        });
+        breakdown += `</div>`;
+        displayVal += breakdown;
+      }
+
       const colorDef = getColorDef(this.hoveredIndex, this.config, styles);
       const tooltipColor = resolveColorString(colorDef);
 
@@ -243,9 +273,13 @@ export class Chart {
 
   private handleMouseClick() {
     if (this.hoveredIndex !== null && this.filterCallback) {
+      const cat = this.categories[this.hoveredIndex];
+      const filterValue = (cat === 'Others' && this.othersDetails.length > 0)
+        ? this.othersDetails.map(item => item.category)
+        : cat;
       this.filterCallback({
         field: this.config.dimension,
-        value: this.categories[this.hoveredIndex]
+        value: filterValue
       });
     }
   }
@@ -346,8 +380,24 @@ export class Chart {
       }
     }
 
-    this.categories = Array.from(aggregated.keys());
-    this.values = Array.from(aggregated.values());
+    this.othersDetails = [];
+    const limit = this.getResolvedLimitCategories();
+    if (limit && limit > 0 && aggregated.size > limit) {
+      const sorted = Array.from(aggregated.entries()).sort((a, b) => b[1] - a[1]);
+      const topItems = sorted.slice(0, limit - 1);
+      const remainingItems = sorted.slice(limit - 1);
+      
+      const othersSum = remainingItems.reduce((sum, item) => sum + item[1], 0);
+      this.othersDetails = remainingItems.map(([category, value]) => ({ category, value }));
+      
+      this.categories = [...topItems.map(([cat]) => cat), 'Others'];
+      this.values = [...topItems.map(([, val]) => val), othersSum];
+    } else {
+      this.categories = Array.from(aggregated.keys());
+      this.values = Array.from(aggregated.values());
+    }
+
+    this.rawTotal = this.values.reduce((sum, val) => sum + val, 0);
 
     if (this.config.asPercentage) {
       const total = this.values.reduce((sum, val) => sum + val, 0);

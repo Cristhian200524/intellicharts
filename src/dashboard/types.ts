@@ -12,4 +12,6 @@ export interface DashboardConfig {
   rowHeight?: string;
   /** Default visual theme applied to children charts */
   theme?: ChartTheme;
+  /** Limit the number of categories rendered by default on all dashboard charts */
+  limitCategories?: number;
 }

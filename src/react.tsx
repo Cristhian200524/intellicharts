@@ -34,7 +34,7 @@ export const Dashboard = forwardRef<IntelliDashboard, DashboardProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const [dashboard, setDashboard] = useState<IntelliDashboard | null>(null);
     const initialized = useRef(false);
-    const configKey = `${config.columns}-${config.gap}-${config.rowHeight}-${config.theme}`;
+    const configKey = `${config.columns}-${config.gap}-${config.rowHeight}-${config.theme}-${config.limitCategories}`;
 
     useImperativeHandle(ref, () => dashboard!, [dashboard]);
 
@@ -92,7 +92,7 @@ export const Chart = forwardRef<IntelliCharts, ChartProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<IntelliCharts | null>(null);
     const initialized = useRef(false);
-    const configKey = `${config.type}-${config.dimension}-${config.measure}-${config.title}-${config.asPercentage}-${config.theme}-${config.column}-${config.widthColumns}-${config.heightRows}-${config.colors?.join(',') || ''}-${config.valueFormatter?.toString() || ''}`;
+    const configKey = `${config.type}-${config.dimension}-${config.measure}-${config.title}-${config.asPercentage}-${config.theme}-${config.column}-${config.widthColumns}-${config.heightRows}-${config.colors?.join(',') || ''}-${config.valueFormatter?.toString() || ''}-${config.limitCategories}`;
 
     useImperativeHandle(ref, () => chartInstance.current!, [chartInstance.current]);
 

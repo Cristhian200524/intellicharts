@@ -147,6 +147,9 @@ export class Dashboard {
     const resolvedTheme = chart.getConfig().theme ?? this.config.theme ?? 'common';
     chart.setResolvedTheme(resolvedTheme);
 
+    const resolvedLimit = chart.getConfig().limitCategories ?? this.config.limitCategories;
+    chart.setResolvedLimitCategories(resolvedLimit);
+
     chart.mount(chartContainer);
 
     chart.onFilter((filter: Filter) => {
@@ -159,7 +162,13 @@ export class Dashboard {
   }
 
   private toggleFilter(filter: Filter) {
-    const index = this.activeFilters.findIndex(f => f.field === filter.field && f.value === filter.value);
+    const index = this.activeFilters.findIndex(f => {
+      if (f.field !== filter.field) return false;
+      if (Array.isArray(f.value) && Array.isArray(filter.value)) {
+        return f.value.length === filter.value.length && f.value.every((v, i) => v === filter.value[i]);
+      }
+      return f.value === filter.value;
+    });
     if (index >= 0) {
       this.activeFilters.splice(index, 1);
     } else {
@@ -215,8 +224,14 @@ export class Dashboard {
     return this.data.filter(row => {
       for (const filter of this.activeFilters) {
         if (chartType === 'card' || filter.field !== chartDimension) {
-          if (String(row[filter.field]) !== String(filter.value)) {
-            return false;
+          if (Array.isArray(filter.value)) {
+            if (!filter.value.map(String).includes(String(row[filter.field]))) {
+              return false;
+            }
+          } else {
+            if (String(row[filter.field]) !== String(filter.value)) {
+              return false;
+            }
           }
         }
       }
@@ -307,6 +322,8 @@ export class Dashboard {
 
     const resolvedTheme = newChart.getConfig().theme ?? this.config.theme ?? 'common';
     newChart.setResolvedTheme(resolvedTheme);
+    const resolvedLimit = newChart.getConfig().limitCategories ?? this.config.limitCategories;
+    newChart.setResolvedLimitCategories(resolvedLimit);
     newChart.mount(chartContainer);
 
     newChart.onFilter((filter: Filter) => {
