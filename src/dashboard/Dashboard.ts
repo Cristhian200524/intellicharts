@@ -22,6 +22,8 @@ export class Dashboard {
   private activeFilters: Filter[] = [];
   /** ResizeObserver instance for handling container resizing */
   private resizeObserver?: ResizeObserver;
+  /** Element reference for the global active filters toolbar */
+  private toolbarEl?: HTMLElement;
 
   /**
    * Automatically creates, structures, and mounts a populated dashboard container.
@@ -44,7 +46,7 @@ export class Dashboard {
   constructor(container: HTMLElement, config?: DashboardConfig) {
     injectGoogleFonts();
     this.container = container;
-    this.config = { columns: 3, gap: '20px', rowHeight: '300px', theme: 'common', ...config };
+    this.config = { columns: 3, gap: '20px', rowHeight: '300px', theme: 'common', showFilterToolbar: true, ...config };
 
     this.container.style.display = 'grid';
     this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
@@ -115,8 +117,12 @@ export class Dashboard {
   public setTheme(theme: ChartTheme) {
     this.config.theme = theme;
     this.applyDashboardTheme(theme);
+    this.renderToolbar();
     this.charts.forEach(chart => {
+      chart.setDashboardTheme(theme);
+
       if (chart.getConfig().theme !== undefined) {
+        chart.applyContainerTheme(chart.getConfig().theme!);
         return;
       }
 
@@ -143,6 +149,8 @@ export class Dashboard {
 
     this.container.appendChild(chartContainer);
     this.charts.push(chart);
+
+    chart.setDashboardTheme(this.config.theme);
 
     const resolvedTheme = chart.getConfig().theme ?? this.config.theme ?? 'common';
     chart.setResolvedTheme(resolvedTheme);
@@ -212,6 +220,7 @@ export class Dashboard {
   }
 
   private updateAllCharts() {
+    this.renderToolbar();
     this.charts.forEach(chart => {
       chart.render(this.getFilteredDataForChart(chart), this.activeFilters);
     });
@@ -273,6 +282,7 @@ export class Dashboard {
     chartsCopy.forEach(chart => this.removeChart(chart));
     this.charts = [];
     this.container.innerHTML = '';
+    this.toolbarEl = undefined;
   }
 
   /**
@@ -319,6 +329,8 @@ export class Dashboard {
     chartContainer.innerHTML = '';
 
     this.charts[index] = newChart;
+
+    newChart.setDashboardTheme(this.config.theme);
 
     const resolvedTheme = newChart.getConfig().theme ?? this.config.theme ?? 'common';
     newChart.setResolvedTheme(resolvedTheme);
@@ -446,5 +458,161 @@ export class Dashboard {
     });
 
     return canvas.toDataURL(type, options);
+  }
+
+  /** Renders the active filters toolbar. */
+  private renderToolbar() {
+    if (this.config.showFilterToolbar === false) {
+      if (this.toolbarEl && this.container.contains(this.toolbarEl)) {
+        this.container.removeChild(this.toolbarEl);
+        this.toolbarEl = undefined;
+      }
+      return;
+    }
+
+    if (!this.toolbarEl || !this.container.contains(this.toolbarEl)) {
+      this.toolbarEl = document.createElement('div');
+      this.toolbarEl.className = 'dashboard-toolbar';
+      this.toolbarEl.style.gridColumn = '1 / -1';
+      this.toolbarEl.style.boxSizing = 'border-box';
+      this.container.prepend(this.toolbarEl);
+    }
+
+    if (this.activeFilters.length === 0) {
+      this.toolbarEl.style.display = 'none';
+      return;
+    }
+
+    const themeName = this.config.theme ?? 'common';
+    const styles = THEMES[themeName];
+
+    this.toolbarEl.style.display = 'flex';
+    this.toolbarEl.style.alignItems = 'center';
+    this.toolbarEl.style.justifyContent = 'space-between';
+    this.toolbarEl.style.flexWrap = 'wrap';
+    this.toolbarEl.style.gap = '12px';
+    this.toolbarEl.style.padding = '12px 18px';
+    this.toolbarEl.style.marginBottom = '10px';
+    this.toolbarEl.style.background = styles.containerBackground;
+    this.toolbarEl.style.border = styles.containerBorder;
+    this.toolbarEl.style.borderRadius = styles.containerBorderRadius;
+    this.toolbarEl.style.boxShadow = styles.containerBoxShadow;
+    this.toolbarEl.style.color = styles.textColor;
+    this.toolbarEl.style.fontFamily = styles.fontFamily ?? 'sans-serif';
+    this.toolbarEl.style.transition = styles.containerTransition;
+
+    if (styles.containerBackdropFilter) {
+      this.toolbarEl.style.backdropFilter = styles.containerBackdropFilter;
+      (this.toolbarEl.style as any).webkitBackdropFilter = styles.containerBackdropFilter;
+    } else {
+      this.toolbarEl.style.backdropFilter = 'none';
+      (this.toolbarEl.style as any).webkitBackdropFilter = 'none';
+    }
+
+    const pillBg = themeName === 'minimal' ? '#f4f4f5'
+                 : themeName === 'glass' ? 'rgba(255, 255, 255, 0.1)'
+                 : themeName === 'neon' ? 'rgba(0, 242, 254, 0.1)'
+                 : themeName === 'elegant' ? 'rgba(212, 175, 55, 0.1)'
+                 : themeName === 'sketch' ? '#faf9f6'
+                 : 'rgba(0, 0, 0, 0.05)';
+
+    const pillBorder = themeName === 'sketch' ? '2px solid #2b2b2b'
+                     : themeName === 'neon' ? '1px solid rgba(0, 242, 254, 0.3)'
+                     : themeName === 'elegant' ? '1px solid rgba(212, 175, 55, 0.3)'
+                     : themeName === 'glass' ? '1px solid rgba(255, 255, 255, 0.2)'
+                     : '1px solid rgba(0, 0, 0, 0.1)';
+
+    this.toolbarEl.innerHTML = '';
+
+    const leftContainer = document.createElement('div');
+    leftContainer.style.display = 'flex';
+    leftContainer.style.alignItems = 'center';
+    leftContainer.style.gap = '8px';
+    leftContainer.style.flexWrap = 'wrap';
+
+    const label = document.createElement('span');
+    label.innerText = 'Active Filters:';
+    label.style.fontWeight = '600';
+    label.style.fontSize = '13px';
+    label.style.opacity = '0.8';
+    leftContainer.appendChild(label);
+
+    this.activeFilters.forEach(filter => {
+      const pill = document.createElement('div');
+      pill.style.display = 'inline-flex';
+      pill.style.alignItems = 'center';
+      pill.style.gap = '6px';
+      pill.style.padding = '4px 10px';
+      pill.style.fontSize = '12px';
+      pill.style.fontWeight = '500';
+      pill.style.background = pillBg;
+      pill.style.border = pillBorder;
+      pill.style.borderRadius = themeName === 'sketch' ? '4px' : '999px';
+      pill.style.boxShadow = themeName === 'sketch' ? '2px 2px 0px #2b2b2b' : 'none';
+
+      const text = document.createElement('span');
+      const valStr = Array.isArray(filter.value) ? filter.value.join(', ') : String(filter.value);
+      text.innerText = `${filter.field}: ${valStr}`;
+      pill.appendChild(text);
+
+      const closeBtn = document.createElement('span');
+      closeBtn.innerText = '✕';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.fontWeight = 'bold';
+      closeBtn.style.opacity = '0.6';
+      closeBtn.style.transition = 'opacity 0.2s';
+      closeBtn.onmouseenter = () => { closeBtn.style.opacity = '1'; };
+      closeBtn.onmouseleave = () => { closeBtn.style.opacity = '0.6'; };
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        this.removeFilter(filter.field);
+      };
+      pill.appendChild(closeBtn);
+
+      leftContainer.appendChild(pill);
+    });
+
+    this.toolbarEl.appendChild(leftContainer);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.innerText = 'Clear All';
+    clearBtn.style.background = 'transparent';
+    clearBtn.style.border = themeName === 'sketch' ? '2px solid #2b2b2b'
+                            : themeName === 'neon' ? '1px solid #ff007f'
+                            : themeName === 'elegant' ? '1px solid #c5a059'
+                            : '1px solid rgba(0, 0, 0, 0.15)';
+    clearBtn.style.color = themeName === 'neon' ? '#ff007f'
+                           : themeName === 'elegant' ? '#c5a059'
+                           : 'inherit';
+    clearBtn.style.padding = '4px 12px';
+    clearBtn.style.fontSize = '12px';
+    clearBtn.style.fontWeight = '600';
+    clearBtn.style.borderRadius = themeName === 'sketch' ? '4px' : '6px';
+    clearBtn.style.cursor = 'pointer';
+    clearBtn.style.boxShadow = themeName === 'sketch' ? '2px 2px 0px #2b2b2b' : 'none';
+    clearBtn.style.transition = 'all 0.2s ease';
+
+    const hoverColor = themeName === 'neon' ? 'rgba(255, 0, 127, 0.15)'
+                       : themeName === 'elegant' ? 'rgba(197, 160, 89, 0.15)'
+                       : 'rgba(0, 0, 0, 0.05)';
+    clearBtn.onmouseenter = () => {
+      clearBtn.style.background = hoverColor;
+      if (themeName === 'sketch') {
+        clearBtn.style.transform = 'translate(-1px, -1px)';
+        clearBtn.style.boxShadow = '3px 3px 0px #2b2b2b';
+      }
+    };
+    clearBtn.onmouseleave = () => {
+      clearBtn.style.background = 'transparent';
+      if (themeName === 'sketch') {
+        clearBtn.style.transform = 'none';
+        clearBtn.style.boxShadow = '2px 2px 0px #2b2b2b';
+      }
+    };
+    clearBtn.onclick = () => {
+      this.clearFilters();
+    };
+
+    this.toolbarEl.appendChild(clearBtn);
   }
 }

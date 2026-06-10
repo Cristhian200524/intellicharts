@@ -14,4 +14,6 @@ export interface DashboardConfig {
   theme?: ChartTheme;
   /** Limit the number of categories rendered by default on all dashboard charts */
   limitCategories?: number;
+  /** Whether to show the global active filters toolbar (default: true) */
+  showFilterToolbar?: boolean;
 }

@@ -65,6 +65,7 @@ Layout parameters for the `Dashboard` container:
 - `rowHeight`: (Optional) Base height spanned by a single grid row (e.g., `'140px'`).
 - `theme`: (Optional) Default visual theme applied to children charts.
 - `limitCategories`: (Optional) Default category limit for child charts. Extras group under `"Others"`.
+- `showFilterToolbar`: (Optional) Whether to render the active filters toolbar (default: `true`).
 
 ### `ChartConfig`
 

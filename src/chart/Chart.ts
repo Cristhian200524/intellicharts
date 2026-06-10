@@ -26,6 +26,7 @@ export class Chart {
   private resolvedLimitCategories?: number;
   private othersDetails: { category: string, value: number }[] = [];
   private rawTotal = 0;
+  private dashboardTheme?: ChartTheme;
   private resizeObserver?: ResizeObserver;
 
   // Custom canvas engine properties
@@ -61,6 +62,14 @@ export class Chart {
     return this.resolvedLimitCategories;
   }
 
+  public setDashboardTheme(theme?: ChartTheme) {
+    this.dashboardTheme = theme;
+  }
+
+  public getDashboardTheme(): ChartTheme | undefined {
+    return this.dashboardTheme;
+  }
+
   public setTheme(theme: ChartTheme) {
     this.setResolvedTheme(theme);
     this.applyContainerTheme(theme);
@@ -81,7 +90,22 @@ export class Chart {
     if (!this.container) return;
     const styles = THEMES[theme];
 
-    this.container.style.background = styles.containerBackground;
+    let background = styles.containerBackground;
+
+    if (this.dashboardTheme) {
+      const isDbDark = ['modern', 'glass', 'elegant', 'neon'].includes(this.dashboardTheme);
+      const isChartDark = ['modern', 'glass', 'elegant', 'neon'].includes(theme);
+
+      if (isChartDark && !isDbDark) {
+        if (theme === 'glass') {
+          background = 'rgba(15, 23, 42, 0.95)';
+        } else if (theme === 'neon') {
+          background = 'rgba(13, 12, 22, 0.95)';
+        }
+      }
+    }
+
+    this.container.style.background = background;
     this.container.style.border = styles.containerBorder;
     this.container.style.borderRadius = styles.containerBorderRadius;
     this.container.style.boxShadow = styles.containerBoxShadow;
