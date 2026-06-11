@@ -1,5 +1,5 @@
-import { ChartTheme, THEMES } from '../theme';
-import { parseCSV } from '../csv';
+import { ChartTheme, THEMES } from '../themes/themes';
+import { parseCSV } from '../utils/csvParser';
 import { ChartConfig, Filter } from './types';
 import { Animator, TransitionManager } from './animation';
 import { BaseRenderer } from './renderers/BaseRenderer';
@@ -10,7 +10,9 @@ import { RadarRenderer } from './renderers/RadarRenderer';
 import { FunnelRenderer } from './renderers/FunnelRenderer';
 import { getNiceTicks, updateTooltip } from './renderers/canvasUtils';
 import { getColorDef, resolveColorString } from './renderers/themeHelpers';
-import { injectGoogleFonts } from '../fonts';
+import { injectGoogleFonts } from '../utils/fontLoader';
+import { aggregateChartData } from '../utils/dataProcessor';
+import { getOthersBreakdownHTML } from '../utils/tooltipFormatter';
 
 /**
  * Handles chart widget mounts and draws.
@@ -249,21 +251,13 @@ export class Chart {
       }
 
       if (cat === 'Others' && this.othersDetails.length > 0) {
-        let breakdown = `<div style="font-size: 11px; margin-top: 6px; border-top: 1px solid ${styles.tooltipBorderColor || 'rgba(0,0,0,0.15)'}; padding-top: 6px; opacity: 0.9;">`;
-        this.othersDetails.forEach(item => {
-          const itemValFormatted = this.config.valueFormatter ? this.config.valueFormatter(item.value) : item.value.toLocaleString();
-          let itemText = itemValFormatted;
-          if (this.config.asPercentage) {
-            const pct = this.rawTotal > 0 ? (item.value / this.rawTotal) * 100 : 0;
-            itemText += ` (${pct.toFixed(2)}%)`;
-          }
-          breakdown += `<div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 2px;">
-            <span>• ${item.category}</span>
-            <span style="font-weight: 600;">${itemText}</span>
-          </div>`;
-        });
-        breakdown += `</div>`;
-        displayVal += breakdown;
+        displayVal += getOthersBreakdownHTML(
+          this.othersDetails,
+          this.rawTotal,
+          theme,
+          styles,
+          this.config
+        );
       }
 
       const colorDef = getColorDef(this.hoveredIndex, this.config, styles);
@@ -395,40 +389,11 @@ export class Chart {
 
     if (!this.container || !this.canvas || !this.ctx) return;
 
-    const aggregated = new Map<string, number>();
-    for (const row of data) {
-      const dimValue = String(row[this.config.dimension]);
-      const measureValue = Number(row[this.config.measure]);
-      if (dimValue && !isNaN(measureValue)) {
-        aggregated.set(dimValue, (aggregated.get(dimValue) || 0) + measureValue);
-      }
-    }
-
-    this.othersDetails = [];
-    const limit = this.getResolvedLimitCategories();
-    if (limit && limit > 0 && aggregated.size > limit) {
-      const sorted = Array.from(aggregated.entries()).sort((a, b) => b[1] - a[1]);
-      const topItems = sorted.slice(0, limit - 1);
-      const remainingItems = sorted.slice(limit - 1);
-      
-      const othersSum = remainingItems.reduce((sum, item) => sum + item[1], 0);
-      this.othersDetails = remainingItems.map(([category, value]) => ({ category, value }));
-      
-      this.categories = [...topItems.map(([cat]) => cat), 'Others'];
-      this.values = [...topItems.map(([, val]) => val), othersSum];
-    } else {
-      this.categories = Array.from(aggregated.keys());
-      this.values = Array.from(aggregated.values());
-    }
-
-    this.rawTotal = this.values.reduce((sum, val) => sum + val, 0);
-
-    if (this.config.asPercentage) {
-      const total = this.values.reduce((sum, val) => sum + val, 0);
-      if (total !== 0) {
-        this.values = this.values.map(val => Number(((val / total) * 100).toFixed(2)));
-      }
-    }
+    const aggResult = aggregateChartData(data, this.config, this.getResolvedLimitCategories());
+    this.categories = aggResult.categories;
+    this.values = aggResult.values;
+    this.othersDetails = aggResult.othersDetails;
+    this.rawTotal = aggResult.rawTotal;
 
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';

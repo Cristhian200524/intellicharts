@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, ReactNode, useImperativeHandle, forwardRef } from 'react';
-import { Dashboard as IntelliDashboard } from './dashboard/Dashboard';
-import { DashboardConfig } from './dashboard/types';
-import { Chart as IntelliCharts } from './chart/Chart';
-import { ChartConfig } from './chart/types';
-import { ChartTheme } from './theme';
-import { autogenerate as intelliAutogenerate, DataType } from './autogenerate';
+import { Dashboard as IntelliDashboard } from '../dashboard/Dashboard';
+import { DashboardConfig } from '../dashboard/types';
+import { Chart as IntelliCharts } from '../chart/Chart';
+import { ChartConfig } from '../chart/types';
+import { ChartTheme } from '../themes/themes';
+import { autogenerate as intelliAutogenerate, DataType } from '../utils/autogenerate';
 
 
 /**

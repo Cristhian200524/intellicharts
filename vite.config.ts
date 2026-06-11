@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       entry: {
         intellicharts: resolve(__dirname, 'src/index.ts'),
-        react: resolve(__dirname, 'src/react.tsx')
+        react: resolve(__dirname, 'src/react/react.tsx')
       },
       name: 'intellicharts',
       fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'umd.cjs'}`,

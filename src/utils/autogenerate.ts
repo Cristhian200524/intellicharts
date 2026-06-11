@@ -1,8 +1,8 @@
-import { Dashboard } from './dashboard/Dashboard';
-import { DashboardConfig } from './dashboard/types';
-import { Chart } from './chart/Chart';
-import { ChartConfig } from './chart/types';
-import { parseCSV } from './csv';
+import { Dashboard } from '../dashboard/Dashboard';
+import { DashboardConfig } from '../dashboard/types';
+import { Chart } from '../chart/Chart';
+import { ChartConfig } from '../chart/types';
+import { parseCSV } from './csvParser';
 
 /**
  * Represents the supported data types for schema analysis and visualization capabilities.

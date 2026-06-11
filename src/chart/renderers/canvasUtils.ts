@@ -1,4 +1,4 @@
-import { ThemeStyles } from '../../theme';
+import { ThemeStyles } from '../../themes/themes';
 
 /**
  * Resolves color codes or linear gradients.
@@ -204,19 +204,47 @@ export function updateTooltip(
   tooltipEl.style.fontFamily = styles.fontFamily || 'sans-serif';
   tooltipEl.style.fontSize = '12px';
   tooltipEl.style.lineHeight = '1.4';
+  tooltipEl.style.whiteSpace = 'nowrap';
+
+  let mainValue = value;
+  let extraHtml = '';
+  const divIndex = value.indexOf('<div');
+  if (divIndex >= 0) {
+    mainValue = value.substring(0, divIndex);
+    extraHtml = value.substring(divIndex);
+  }
 
   tooltipEl.innerHTML = `
     <div style="font-weight: 600; margin-bottom: 4px;">${header}</div>
     <div style="display: flex; align-items: center; gap: 6px;">
-      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color};"></span>
-      <span>${value}</span>
+      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></span>
+      <span>${mainValue}</span>
     </div>
+    ${extraHtml}
   `;
 
+  const containerWidth = tooltipEl.offsetParent ? (tooltipEl.offsetParent as HTMLElement).offsetWidth : window.innerWidth;
+  const containerHeight = tooltipEl.offsetParent ? (tooltipEl.offsetParent as HTMLElement).offsetHeight : window.innerHeight;
+  const tooltipWidth = tooltipEl.offsetWidth;
   const tooltipHeight = tooltipEl.offsetHeight;
 
-  tooltipEl.style.left = `${x + 15}px`;
-  tooltipEl.style.top = `${y - tooltipHeight / 2}px`;
+  let leftPos = x + 15;
+  if (leftPos + tooltipWidth > containerWidth) {
+    leftPos = x - tooltipWidth - 15;
+  }
+  if (leftPos < 5) {
+    leftPos = 5;
+  }
+
+  let topPos = y - tooltipHeight / 2;
+  if (topPos < 5) {
+    topPos = 5;
+  } else if (topPos + tooltipHeight > containerHeight - 5) {
+    topPos = Math.max(5, containerHeight - tooltipHeight - 5);
+  }
+
+  tooltipEl.style.left = `${leftPos}px`;
+  tooltipEl.style.top = `${topPos}px`;
 }
 
 /**

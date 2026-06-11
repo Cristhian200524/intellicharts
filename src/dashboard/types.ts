@@ -1,4 +1,4 @@
-import { ChartTheme } from '../theme';
+import { ChartTheme } from '../themes/themes';
 
 /**
  * Configuration options for the Dashboard layout engine.
@@ -14,6 +14,6 @@ export interface DashboardConfig {
   theme?: ChartTheme;
   /** Limit the number of categories rendered by default on all dashboard charts */
   limitCategories?: number;
-  /** Whether to show the global active filters toolbar (default: true) */
+  /** Whether to show the global active filters toolbar (default: false) */
   showFilterToolbar?: boolean;
 }

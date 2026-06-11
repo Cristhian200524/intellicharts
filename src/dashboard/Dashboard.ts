@@ -1,10 +1,12 @@
 import { Chart } from '../chart/Chart';
 import { Filter } from '../chart/types';
-import { ChartTheme, THEMES } from '../theme';
-import { parseCSV } from '../csv';
-import { injectGoogleFonts } from '../fonts';
-import { autogenerate, DataType } from '../autogenerate';
+import { ChartTheme, THEMES } from '../themes/themes';
+import { parseCSV } from '../utils/csvParser';
+import { injectGoogleFonts } from '../utils/fontLoader';
+import { autogenerate, DataType } from '../utils/autogenerate';
 import { DashboardConfig } from './types';
+import { renderDashboardToolbar } from './filterToolbar';
+import { exportDashboardToDataURL } from '../utils/dashboardExporter';
 
 /**
  * The Dashboard manages multiple charts in a dynamic responsive CSS Grid.
@@ -46,7 +48,7 @@ export class Dashboard {
   constructor(container: HTMLElement, config?: DashboardConfig) {
     injectGoogleFonts();
     this.container = container;
-    this.config = { columns: 3, gap: '20px', rowHeight: '300px', theme: 'common', showFilterToolbar: true, ...config };
+    this.config = { columns: 3, gap: '20px', rowHeight: '300px', theme: 'common', showFilterToolbar: false, ...config };
 
     this.container.style.display = 'grid';
     this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
@@ -380,239 +382,19 @@ export class Dashboard {
 
   /** Exports the entire dashboard as a single Base64 image data URL. */
   public getDataURL(type = 'image/png', options?: any): string | undefined {
-    if (this.charts.length === 0) return undefined;
-    const canvas = document.createElement('canvas');
-    canvas.width = this.container.offsetWidth;
-    canvas.height = this.container.offsetHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
-
-    const dbStyle = window.getComputedStyle(this.container);
-    ctx.fillStyle = dbStyle.backgroundColor || '#f1f5f9';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    this.charts.forEach(chart => {
-      const child = chart.getContainer();
-      if (!child) return;
-      const parentRect = this.container.getBoundingClientRect();
-      const childRect = child.getBoundingClientRect();
-      const x = childRect.left - parentRect.left;
-      const y = childRect.top - parentRect.top;
-      const w = childRect.width;
-      const h = childRect.height;
-
-      const childStyle = window.getComputedStyle(child);
-      const borderRadius = parseFloat(childStyle.borderRadius) || 0;
-      ctx.save();
-      ctx.fillStyle = childStyle.backgroundColor || '#ffffff';
-      if (childStyle.boxShadow && childStyle.boxShadow !== 'none') {
-        ctx.shadowColor = 'rgba(0,0,0,0.1)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 4;
-      }
-      if (borderRadius > 0) {
-        ctx.beginPath();
-        ctx.moveTo(x + borderRadius, y);
-        ctx.lineTo(x + w - borderRadius, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
-        ctx.lineTo(x + w, y + h - borderRadius);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
-        ctx.lineTo(x + borderRadius, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
-        ctx.lineTo(x, y + borderRadius);
-        ctx.quadraticCurveTo(x, y, x + borderRadius, y);
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.fillRect(x, y, w, h);
-      }
-      ctx.restore();
-
-      const chartCanvas = child.querySelector('canvas') as HTMLCanvasElement;
-      if (chartCanvas) {
-        ctx.drawImage(
-          chartCanvas,
-          x + chartCanvas.offsetLeft,
-          y + chartCanvas.offsetTop,
-          chartCanvas.offsetWidth,
-          chartCanvas.offsetHeight
-        );
-      } else {
-        const titleEl = child.querySelector('.card-title') as HTMLElement;
-        const valueEl = child.querySelector('.card-value') as HTMLElement;
-        if (titleEl && valueEl) {
-          ctx.save();
-          ctx.fillStyle = window.getComputedStyle(titleEl).color || '#666';
-          ctx.font = `bold 12px ${window.getComputedStyle(titleEl).fontFamily || 'sans-serif'}`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(titleEl.innerText, x + w / 2, y + h / 2 - 15);
-
-          ctx.fillStyle = window.getComputedStyle(valueEl).color || '#333';
-          ctx.font = `bold 32px ${window.getComputedStyle(valueEl).fontFamily || 'sans-serif'}`;
-          ctx.fillText(valueEl.innerText, x + w / 2, y + h / 2 + 20);
-          ctx.restore();
-        }
-      }
-    });
-
-    return canvas.toDataURL(type, options);
+    return exportDashboardToDataURL(this.container, this.charts, type, options);
   }
 
   /** Renders the active filters toolbar. */
   private renderToolbar() {
-    if (this.config.showFilterToolbar === false) {
-      if (this.toolbarEl && this.container.contains(this.toolbarEl)) {
-        this.container.removeChild(this.toolbarEl);
-        this.toolbarEl = undefined;
-      }
-      return;
-    }
-
-    if (!this.toolbarEl || !this.container.contains(this.toolbarEl)) {
-      this.toolbarEl = document.createElement('div');
-      this.toolbarEl.className = 'dashboard-toolbar';
-      this.toolbarEl.style.gridColumn = '1 / -1';
-      this.toolbarEl.style.boxSizing = 'border-box';
-      this.container.prepend(this.toolbarEl);
-    }
-
-    if (this.activeFilters.length === 0) {
-      this.toolbarEl.style.display = 'none';
-      return;
-    }
-
-    const themeName = this.config.theme ?? 'common';
-    const styles = THEMES[themeName];
-
-    this.toolbarEl.style.display = 'flex';
-    this.toolbarEl.style.alignItems = 'center';
-    this.toolbarEl.style.justifyContent = 'space-between';
-    this.toolbarEl.style.flexWrap = 'wrap';
-    this.toolbarEl.style.gap = '12px';
-    this.toolbarEl.style.padding = '12px 18px';
-    this.toolbarEl.style.marginBottom = '10px';
-    this.toolbarEl.style.background = styles.containerBackground;
-    this.toolbarEl.style.border = styles.containerBorder;
-    this.toolbarEl.style.borderRadius = styles.containerBorderRadius;
-    this.toolbarEl.style.boxShadow = styles.containerBoxShadow;
-    this.toolbarEl.style.color = styles.textColor;
-    this.toolbarEl.style.fontFamily = styles.fontFamily ?? 'sans-serif';
-    this.toolbarEl.style.transition = styles.containerTransition;
-
-    if (styles.containerBackdropFilter) {
-      this.toolbarEl.style.backdropFilter = styles.containerBackdropFilter;
-      (this.toolbarEl.style as any).webkitBackdropFilter = styles.containerBackdropFilter;
-    } else {
-      this.toolbarEl.style.backdropFilter = 'none';
-      (this.toolbarEl.style as any).webkitBackdropFilter = 'none';
-    }
-
-    const pillBg = themeName === 'minimal' ? '#f4f4f5'
-                 : themeName === 'glass' ? 'rgba(255, 255, 255, 0.1)'
-                 : themeName === 'neon' ? 'rgba(0, 242, 254, 0.1)'
-                 : themeName === 'elegant' ? 'rgba(212, 175, 55, 0.1)'
-                 : themeName === 'sketch' ? '#faf9f6'
-                 : 'rgba(0, 0, 0, 0.05)';
-
-    const pillBorder = themeName === 'sketch' ? '2px solid #2b2b2b'
-                     : themeName === 'neon' ? '1px solid rgba(0, 242, 254, 0.3)'
-                     : themeName === 'elegant' ? '1px solid rgba(212, 175, 55, 0.3)'
-                     : themeName === 'glass' ? '1px solid rgba(255, 255, 255, 0.2)'
-                     : '1px solid rgba(0, 0, 0, 0.1)';
-
-    this.toolbarEl.innerHTML = '';
-
-    const leftContainer = document.createElement('div');
-    leftContainer.style.display = 'flex';
-    leftContainer.style.alignItems = 'center';
-    leftContainer.style.gap = '8px';
-    leftContainer.style.flexWrap = 'wrap';
-
-    const label = document.createElement('span');
-    label.innerText = 'Active Filters:';
-    label.style.fontWeight = '600';
-    label.style.fontSize = '13px';
-    label.style.opacity = '0.8';
-    leftContainer.appendChild(label);
-
-    this.activeFilters.forEach(filter => {
-      const pill = document.createElement('div');
-      pill.style.display = 'inline-flex';
-      pill.style.alignItems = 'center';
-      pill.style.gap = '6px';
-      pill.style.padding = '4px 10px';
-      pill.style.fontSize = '12px';
-      pill.style.fontWeight = '500';
-      pill.style.background = pillBg;
-      pill.style.border = pillBorder;
-      pill.style.borderRadius = themeName === 'sketch' ? '4px' : '999px';
-      pill.style.boxShadow = themeName === 'sketch' ? '2px 2px 0px #2b2b2b' : 'none';
-
-      const text = document.createElement('span');
-      const valStr = Array.isArray(filter.value) ? filter.value.join(', ') : String(filter.value);
-      text.innerText = `${filter.field}: ${valStr}`;
-      pill.appendChild(text);
-
-      const closeBtn = document.createElement('span');
-      closeBtn.innerText = '✕';
-      closeBtn.style.cursor = 'pointer';
-      closeBtn.style.fontWeight = 'bold';
-      closeBtn.style.opacity = '0.6';
-      closeBtn.style.transition = 'opacity 0.2s';
-      closeBtn.onmouseenter = () => { closeBtn.style.opacity = '1'; };
-      closeBtn.onmouseleave = () => { closeBtn.style.opacity = '0.6'; };
-      closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        this.removeFilter(filter.field);
-      };
-      pill.appendChild(closeBtn);
-
-      leftContainer.appendChild(pill);
-    });
-
-    this.toolbarEl.appendChild(leftContainer);
-
-    const clearBtn = document.createElement('button');
-    clearBtn.innerText = 'Clear All';
-    clearBtn.style.background = 'transparent';
-    clearBtn.style.border = themeName === 'sketch' ? '2px solid #2b2b2b'
-                            : themeName === 'neon' ? '1px solid #ff007f'
-                            : themeName === 'elegant' ? '1px solid #c5a059'
-                            : '1px solid rgba(0, 0, 0, 0.15)';
-    clearBtn.style.color = themeName === 'neon' ? '#ff007f'
-                           : themeName === 'elegant' ? '#c5a059'
-                           : 'inherit';
-    clearBtn.style.padding = '4px 12px';
-    clearBtn.style.fontSize = '12px';
-    clearBtn.style.fontWeight = '600';
-    clearBtn.style.borderRadius = themeName === 'sketch' ? '4px' : '6px';
-    clearBtn.style.cursor = 'pointer';
-    clearBtn.style.boxShadow = themeName === 'sketch' ? '2px 2px 0px #2b2b2b' : 'none';
-    clearBtn.style.transition = 'all 0.2s ease';
-
-    const hoverColor = themeName === 'neon' ? 'rgba(255, 0, 127, 0.15)'
-                       : themeName === 'elegant' ? 'rgba(197, 160, 89, 0.15)'
-                       : 'rgba(0, 0, 0, 0.05)';
-    clearBtn.onmouseenter = () => {
-      clearBtn.style.background = hoverColor;
-      if (themeName === 'sketch') {
-        clearBtn.style.transform = 'translate(-1px, -1px)';
-        clearBtn.style.boxShadow = '3px 3px 0px #2b2b2b';
-      }
-    };
-    clearBtn.onmouseleave = () => {
-      clearBtn.style.background = 'transparent';
-      if (themeName === 'sketch') {
-        clearBtn.style.transform = 'none';
-        clearBtn.style.boxShadow = '2px 2px 0px #2b2b2b';
-      }
-    };
-    clearBtn.onclick = () => {
-      this.clearFilters();
-    };
-
-    this.toolbarEl.appendChild(clearBtn);
+    this.toolbarEl = renderDashboardToolbar(
+      this.container,
+      this.config,
+      this.activeFilters,
+      this.toolbarEl,
+      (field) => this.removeFilter(field),
+      () => this.clearFilters()
+    );
   }
 }
+

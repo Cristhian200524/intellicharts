@@ -1,4 +1,4 @@
-import { ChartTheme } from '../theme';
+import { ChartTheme } from '../themes/themes';
 
 /**
  * Configuration options for a single Chart instance.

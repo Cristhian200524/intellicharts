@@ -1,5 +1,5 @@
 import { ChartConfig, Filter } from '../types';
-import { ChartTheme, ThemeStyles } from '../../theme';
+import { ChartTheme, ThemeStyles } from '../../themes/themes';
 import { truncateText } from './canvasUtils';
 
 /** Execution context passed to all renderers. */
