@@ -1,7 +1,7 @@
 import { BaseRenderer } from './BaseRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyArc, drawSketchyLine, truncateText } from './canvasUtils';
-import { computeItemOpacity, getColorDef, resolveColorString, isRoundedTheme } from './themeHelpers';
+import { getCanvasColor, drawSketchyArc, drawSketchyLine, truncateText } from './utils/canvasUtils';
+import { computeItemOpacity, getColorDef, resolveColorString, isRoundedTheme } from './utils/styleUtils';
 
 /** Renders Pie and Donut charts with optional rounded sectors. */
 export class PieRenderer extends BaseRenderer {

@@ -1,6 +1,6 @@
 import { ThemeStyles } from '../themes/themes';
 import { ChartConfig } from '../chart/types';
-import { getColorDef, resolveColorString } from '../chart/renderers/themeHelpers';
+import { getColorDef, resolveColorString } from '../chart/renderers/utils/styleUtils';
 
 /**
  * Generates the HTML breakdown list for the grouped categories inside the "Others" category tooltip.

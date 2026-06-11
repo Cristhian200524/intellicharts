@@ -1,5 +1,5 @@
 import { BaseRenderer, DEFAULT_PADDING } from './BaseRenderer';
-import { getNiceTicks } from './canvasUtils';
+import { getNiceTicks } from './utils/canvasUtils';
 
 /**
  * AxisRenderer is an intermediate base class for axis-based charts (like Bar and Line charts).

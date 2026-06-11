@@ -1,7 +1,7 @@
 import { BaseRenderer } from './BaseRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyLine, truncateText } from './canvasUtils';
-import { computeItemOpacity, getColorDef, getItemTextColor, isStyledTheme, isRoundedTheme } from './themeHelpers';
+import { getCanvasColor, drawSketchyLine, truncateText } from './utils/canvasUtils';
+import { computeItemOpacity, getColorDef, getItemTextColor, isStyledTheme, isRoundedTheme } from './utils/styleUtils';
 
 /** Renders Funnel charts as stacked descending trapezoids. */
 export class FunnelRenderer extends BaseRenderer {

@@ -1,7 +1,7 @@
 import { AxisRenderer } from './AxisRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawRoundedRect, drawSketchyRect, getNiceTicks, truncateText } from './canvasUtils';
-import { computeItemOpacity, getColorDef } from './themeHelpers';
+import { getCanvasColor, drawRoundedRect, drawSketchyRect, getNiceTicks, truncateText } from './utils/canvasUtils';
+import { computeItemOpacity, getColorDef } from './utils/styleUtils';
 
 /** Renders Bar charts on an axis grid. */
 export class BarRenderer extends AxisRenderer {

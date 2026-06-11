@@ -1,7 +1,7 @@
 import { AxisRenderer } from './AxisRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyLine, drawSketchyArc, getNiceTicks, truncateText } from './canvasUtils';
-import { computeItemOpacity, getColorDef } from './themeHelpers';
+import { getCanvasColor, drawSketchyLine, drawSketchyArc, getNiceTicks, truncateText } from './utils/canvasUtils';
+import { computeItemOpacity, getColorDef } from './utils/styleUtils';
 
 /** Renders Line charts with optional smooth curves, area fills, and markers. */
 export class LineRenderer extends AxisRenderer {

@@ -1,7 +1,7 @@
 import { BaseRenderer } from './BaseRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyLine, drawSketchyArc, truncateText } from './canvasUtils';
-import { getColorDef } from './themeHelpers';
+import { getCanvasColor, drawSketchyLine, drawSketchyArc, truncateText } from './utils/canvasUtils';
+import { getColorDef } from './utils/styleUtils';
 
 /** Renders Radar charts with polygon grids, spokes, and data polygons. */
 export class RadarRenderer extends BaseRenderer {

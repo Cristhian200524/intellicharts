@@ -1,4 +1,4 @@
-import { ThemeStyles } from '../../themes/themes';
+import { ThemeStyles } from '../../../themes/themes';
 
 /**
  * Resolves color codes or linear gradients.

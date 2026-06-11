@@ -1,5 +1,5 @@
-import { ChartConfig, Filter } from '../types';
-import { ChartTheme, ThemeStyles } from '../../themes/themes';
+import { ChartConfig, Filter } from '../../types';
+import { ChartTheme, ThemeStyles } from '../../../themes/themes';
 import { isDarkColor } from './canvasUtils';
 
 /** Themes that render pie/donut and funnel segments with rounded corners. */
