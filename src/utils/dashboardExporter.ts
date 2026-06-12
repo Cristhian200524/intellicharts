@@ -1,13 +1,63 @@
 import { Chart } from '../chart/Chart';
 
 /**
+ * Draws background with linear gradient, backdrop filter, and borders using native roundRect.
+ */
+function drawBackground(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number,
+  borderRadius: number,
+  computedStyle: CSSStyleDeclaration,
+  fallbackColor: string,
+  dpr: number
+) {
+  let bg = computedStyle.backgroundImage !== 'none' ? computedStyle.backgroundImage : computedStyle.backgroundColor;
+  if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') bg = fallbackColor;
+
+  // 1. Simulate backdrop filter (frosted glass blur)
+  const filter = computedStyle.backdropFilter || (computedStyle as any).webkitBackdropFilter;
+  if (filter && filter.includes('blur')) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, borderRadius) : ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.filter = filter.match(/blur\([^)]+\)/)?.[0] || 'none';
+    ctx.drawImage(ctx.canvas, 0, 0, ctx.canvas.width / dpr, ctx.canvas.height / dpr);
+    ctx.restore();
+  }
+
+  // 2. Draw card background (solid or gradient)
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, borderRadius) : ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  if (bg.includes('linear-gradient')) {
+    const colors = bg.match(/(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))/g) || [fallbackColor, fallbackColor];
+    const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+    colors.forEach((c, i) => grad.addColorStop(i / (colors.length - 1), c));
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = bg;
+  }
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+
+  // 3. Draw borders
+  const bw = parseFloat(computedStyle.borderWidth) || 0;
+  if (bw > 0 && computedStyle.borderColor && computedStyle.borderStyle !== 'none') {
+    ctx.save();
+    ctx.lineWidth = bw;
+    ctx.strokeStyle = computedStyle.borderColor;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, borderRadius) : ctx.rect(x, y, w, h);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/**
  * Exports the dashboard grid layout and all child charts into a single Base64 image data URL.
- *
- * @param container The parent dashboard grid container.
- * @param charts List of registered dashboard chart widgets.
- * @param type The image MIME type (e.g. 'image/png').
- * @param options Encoding configuration settings.
- * @returns The Base64 encoded image string, or undefined if no charts exist.
  */
 export function exportDashboardToDataURL(
   container: HTMLElement,
@@ -16,15 +66,28 @@ export function exportDashboardToDataURL(
   options?: any
 ): string | undefined {
   if (charts.length === 0) return undefined;
+
+  const prevProgresses = charts.map(chart => chart.getCurrentAnimationProgress());
+  charts.forEach(chart => chart.forceFinalFrame());
+
+  const dpr = window.devicePixelRatio || 1;
   const canvas = document.createElement('canvas');
-  canvas.width = container.offsetWidth;
-  canvas.height = container.offsetHeight;
+  canvas.width = container.offsetWidth * dpr;
+  canvas.height = container.offsetHeight * dpr;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return undefined;
+  
+  if (!ctx) {
+    charts.forEach((chart, idx) => {
+      const prev = prevProgresses[idx];
+      if (prev < 1.0) chart.restoreFrame(prev);
+    });
+    return undefined;
+  }
+
+  ctx.scale(dpr, dpr);
 
   const dbStyle = window.getComputedStyle(container);
-  ctx.fillStyle = dbStyle.backgroundColor || '#f1f5f9';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawBackground(ctx, 0, 0, container.offsetWidth, container.offsetHeight, 0, dbStyle, '#f1f5f9', dpr);
 
   charts.forEach(chart => {
     const child = chart.getContainer();
@@ -38,59 +101,65 @@ export function exportDashboardToDataURL(
 
     const childStyle = window.getComputedStyle(child);
     const borderRadius = parseFloat(childStyle.borderRadius) || 0;
-    ctx.save();
-    ctx.fillStyle = childStyle.backgroundColor || '#ffffff';
-    if (childStyle.boxShadow && childStyle.boxShadow !== 'none') {
-      ctx.shadowColor = 'rgba(0,0,0,0.1)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 4;
+
+    // Draw shadow/glow (Neon/Glass glow)
+    const shadowColor = childStyle.boxShadow.match(/rgba?\([^)]+\)|#[0-9a-fA-F]+/)?.[0];
+    if (shadowColor && shadowColor !== 'transparent' && !childStyle.boxShadow.includes('inset')) {
+      ctx.save();
+      ctx.shadowColor = shadowColor;
+      const pxs = childStyle.boxShadow.replace(shadowColor, '').match(/-?\d+px/g)?.map(p => parseFloat(p)) || [];
+      ctx.shadowOffsetX = pxs[0] || 0;
+      ctx.shadowOffsetY = pxs[1] || 0;
+      ctx.shadowBlur = pxs[2] || 0;
+      ctx.fillStyle = '#000000';
+      
+      const drawPath = () => {
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, w, h, borderRadius) : ctx.rect(x, y, w, h);
+        ctx.fill();
+      };
+      
+      drawPath();
+      
+      // Cut out card interior to preserve transparency
+      ctx.shadowColor = 'transparent';
+      ctx.globalCompositeOperation = 'destination-out';
+      drawPath();
+      ctx.restore();
     }
-    if (borderRadius > 0) {
-      ctx.beginPath();
-      ctx.moveTo(x + borderRadius, y);
-      ctx.lineTo(x + w - borderRadius, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
-      ctx.lineTo(x + w, y + h - borderRadius);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
-      ctx.lineTo(x + borderRadius, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
-      ctx.lineTo(x, y + borderRadius);
-      ctx.quadraticCurveTo(x, y, x + borderRadius, y);
-      ctx.closePath();
-      ctx.fill();
-    } else {
-      ctx.fillRect(x, y, w, h);
-    }
-    ctx.restore();
+
+    drawBackground(ctx, x, y, w, h, borderRadius, childStyle, '#ffffff', dpr);
 
     const chartCanvas = child.querySelector('canvas') as HTMLCanvasElement;
     if (chartCanvas) {
-      ctx.drawImage(
-        chartCanvas,
-        x + chartCanvas.offsetLeft,
-        y + chartCanvas.offsetTop,
-        chartCanvas.offsetWidth,
-        chartCanvas.offsetHeight
-      );
+      ctx.drawImage(chartCanvas, x + chartCanvas.offsetLeft, y + chartCanvas.offsetTop, chartCanvas.offsetWidth, chartCanvas.offsetHeight);
     } else {
       const titleEl = child.querySelector('.card-title') as HTMLElement;
       const valueEl = child.querySelector('.card-value') as HTMLElement;
       if (titleEl && valueEl) {
+        const titleStyle = window.getComputedStyle(titleEl);
+        const valueStyle = window.getComputedStyle(valueEl);
         ctx.save();
-        ctx.fillStyle = window.getComputedStyle(titleEl).color || '#666';
-        ctx.font = `bold 12px ${window.getComputedStyle(titleEl).fontFamily || 'sans-serif'}`;
+        ctx.fillStyle = titleStyle.color || '#666';
+        ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(titleEl.innerText, x + w / 2, y + h / 2 - 15);
+        ctx.fillText(titleEl.innerText, x + w / 2, y + h / 2 - 18);
 
-        ctx.fillStyle = window.getComputedStyle(valueEl).color || '#333';
-        ctx.font = `bold 32px ${window.getComputedStyle(valueEl).fontFamily || 'sans-serif'}`;
-        ctx.fillText(valueEl.innerText, x + w / 2, y + h / 2 + 20);
+        ctx.fillStyle = valueStyle.color || '#333';
+        ctx.font = `${valueStyle.fontWeight} ${valueStyle.fontSize} ${valueStyle.fontFamily}`;
+        ctx.fillText(valueEl.innerText, x + w / 2, y + h / 2 + 18);
         ctx.restore();
       }
     }
   });
 
-  return canvas.toDataURL(type, options);
+  const dataURL = canvas.toDataURL(type, options);
+
+  charts.forEach((chart, index) => {
+    const prev = prevProgresses[index];
+    if (prev < 1.0) chart.restoreFrame(prev);
+  });
+
+  return dataURL;
 }

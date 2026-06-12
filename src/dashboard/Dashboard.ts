@@ -385,6 +385,17 @@ export class Dashboard {
     return exportDashboardToDataURL(this.container, this.charts, type, options);
   }
 
+  /** Downloads the entire dashboard layout as a single consolidated image. */
+  public download(filename = 'dashboard.png', type = 'image/png', options?: any): void {
+    const dataUrl = this.getDataURL(type, options);
+    if (dataUrl) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    }
+  }
+
   /** Renders the active filters toolbar. */
   private renderToolbar() {
     this.toolbarEl = renderDashboardToolbar(

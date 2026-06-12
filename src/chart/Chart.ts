@@ -34,6 +34,7 @@ export class Chart {
   // Custom canvas engine properties
   private canvas?: HTMLCanvasElement;
   private ctx?: CanvasRenderingContext2D;
+  private currentAnimationProgress = 1.0;
   private animator: Animator = new Animator();
   private transitionManager: TransitionManager = new TransitionManager();
   private activeRenderer?: BaseRenderer;
@@ -432,14 +433,17 @@ export class Chart {
     if (animate) {
       this.animator.start(450, 
         (progress) => {
+          this.currentAnimationProgress = progress;
           this.drawFrame(progress);
         },
         () => {
+          this.currentAnimationProgress = 1.0;
           const targetYMax = this.calculateYMax(this.values);
           this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
         }
       );
     } else {
+      this.currentAnimationProgress = 1.0;
       this.drawFrame(1.0);
       const targetYMax = this.calculateYMax(this.values);
       this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
@@ -453,7 +457,47 @@ export class Chart {
 
   /** Exports the current chart state as a Base64 image data URL. */
   public getDataURL(type = 'image/png', options?: any): string | undefined {
-    return this.canvas?.toDataURL(type, options);
+    if (!this.canvas) return undefined;
+    if (this.lastData.length > 0) {
+      const prevProgress = this.currentAnimationProgress;
+      this.drawFrame(1.0);
+      const url = this.canvas.toDataURL(type, options);
+      if (prevProgress < 1.0) {
+        this.drawFrame(prevProgress);
+      }
+      return url;
+    }
+    return this.canvas.toDataURL(type, options);
+  }
+
+  /** Downloads the current chart state as an image file. */
+  public download(filename = 'chart.png', type = 'image/png', options?: any): void {
+    const dataUrl = this.getDataURL(type, options);
+    if (dataUrl) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    }
+  }
+
+  /** Gets the current progress of the rendering animation. */
+  public getCurrentAnimationProgress(): number {
+    return this.currentAnimationProgress;
+  }
+
+  /** Forces the chart to render its final state (progress 1.0) synchronously. */
+  public forceFinalFrame(): void {
+    if (this.lastData.length > 0) {
+      this.drawFrame(1.0);
+    }
+  }
+
+  /** Restores the chart's rendering to a specific animation progress. */
+  public restoreFrame(progress: number): void {
+    if (this.lastData.length > 0) {
+      this.drawFrame(progress);
+    }
   }
 
   private calculateYMax(values: number[]): number {
