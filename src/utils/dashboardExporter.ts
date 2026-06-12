@@ -133,24 +133,6 @@ export function exportDashboardToDataURL(
     const chartCanvas = child.querySelector('canvas') as HTMLCanvasElement;
     if (chartCanvas) {
       ctx.drawImage(chartCanvas, x + chartCanvas.offsetLeft, y + chartCanvas.offsetTop, chartCanvas.offsetWidth, chartCanvas.offsetHeight);
-    } else {
-      const titleEl = child.querySelector('.card-title') as HTMLElement;
-      const valueEl = child.querySelector('.card-value') as HTMLElement;
-      if (titleEl && valueEl) {
-        const titleStyle = window.getComputedStyle(titleEl);
-        const valueStyle = window.getComputedStyle(valueEl);
-        ctx.save();
-        ctx.fillStyle = titleStyle.color || '#666';
-        ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(titleEl.innerText, x + w / 2, y + h / 2 - 18);
-
-        ctx.fillStyle = valueStyle.color || '#333';
-        ctx.font = `${valueStyle.fontWeight} ${valueStyle.fontSize} ${valueStyle.fontFamily}`;
-        ctx.fillText(valueEl.innerText, x + w / 2, y + h / 2 + 18);
-        ctx.restore();
-      }
     }
   });
 

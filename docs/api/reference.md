@@ -30,6 +30,7 @@ The main layout and synchronization engine container.
 | **`getActiveFilters`** | `()` | Returns a copy of the currently active global dimension filters. |
 | **`resize`** | `()` | Resizes and redraws all active charts manually. |
 | **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the entire dashboard layout as a single consolidated Base64 image data URL. |
+| **`download`** | `(filename?: string, type?: string, options?: any)` | Triggers a browser download of the entire dashboard layout as a single consolidated image file. |
 | **`dispose`** | `()` | Cleans up the dashboard by disposing of all child charts, disconnecting resize observers, and clearing listeners. |
 
 
@@ -50,6 +51,8 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | **`getConfig`** | `()` | Returns the active `ChartConfig` settings of the chart. |
 | **`resize`** | `()` | Resizes and redraws the chart manually. |
 | **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the chart current state as a Base64-encoded image data URL. |
+| **`download`** | `(filename?: string, type?: string, options?: any)` | Triggers a browser download of the current chart state as an image file. |
+| **`setIsStandalone`** | `(value: boolean)` | Sets whether the chart runs standalone (which instantiates its own `ResizeObserver`) or is managed inside a dashboard. |
 | **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, disconnecting its resize observer, and removing mouse event listeners. |
 
 

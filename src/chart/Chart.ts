@@ -8,6 +8,7 @@ import { LineRenderer } from './renderers/LineRenderer';
 import { PieRenderer } from './renderers/PieRenderer';
 import { RadarRenderer } from './renderers/RadarRenderer';
 import { FunnelRenderer } from './renderers/FunnelRenderer';
+import { CardRenderer } from './renderers/CardRenderer';
 import { getNiceTicks, updateTooltip } from './renderers/utils/canvasUtils';
 import { getColorDef, resolveColorString } from './renderers/utils/styleUtils';
 import { injectGoogleFonts } from '../utils/fontLoader';
@@ -30,6 +31,7 @@ export class Chart {
   private rawTotal = 0;
   private dashboardTheme?: ChartTheme;
   private resizeObserver?: ResizeObserver;
+  private isStandalone = true;
 
   // Custom canvas engine properties
   private canvas?: HTMLCanvasElement;
@@ -71,6 +73,10 @@ export class Chart {
 
   public getDashboardTheme(): ChartTheme | undefined {
     return this.dashboardTheme;
+  }
+
+  public setIsStandalone(value: boolean) {
+    this.isStandalone = value;
   }
 
   public setTheme(theme: ChartTheme) {
@@ -151,22 +157,18 @@ export class Chart {
     const theme = this.getResolvedTheme();
     this.applyContainerTheme(theme);
 
-    if (this.config.type === 'card') {
-      this.container.style.display = 'flex';
-      this.container.style.flexDirection = 'column';
-      this.container.style.justifyContent = 'center';
-      this.container.style.alignItems = 'center';
-    } else {
-      if (!this.container.style.height && (!this.container.offsetHeight || this.container.offsetHeight === 0)) {
-        this.container.style.height = '300px';
-      }
-      this.canvas = document.createElement('canvas');
-      this.canvas.style.display = 'block';
-      this.canvas.style.width = '100%';
-      this.canvas.style.height = '100%';
-      this.container.appendChild(this.canvas);
-      this.ctx = this.canvas.getContext('2d') || undefined;
+    if (!this.container.style.height && (!this.container.offsetHeight || this.container.offsetHeight === 0)) {
+      this.container.style.height = this.config.type === 'card' ? '100%' : '300px';
+    }
 
+    this.canvas = document.createElement('canvas');
+    this.canvas.style.display = 'block';
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    this.container.appendChild(this.canvas);
+    this.ctx = this.canvas.getContext('2d') || undefined;
+
+    if (this.config.type !== 'card') {
       this.tooltipEl = document.createElement('div');
       this.tooltipEl.className = 'chart-tooltip';
       this.tooltipEl.style.position = 'absolute';
@@ -179,10 +181,11 @@ export class Chart {
       this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
       this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
       this.canvas.addEventListener('click', () => this.handleMouseClick());
+    }
 
+    if (this.isStandalone) {
       this.resizeObserver = new ResizeObserver(() => {
         if (this.lastData.length > 0) {
-          // Disable animation transitions during resize events
           this.render(this.lastData, this.activeFilters, false);
         }
       });
@@ -350,44 +353,6 @@ export class Chart {
     const theme = this.getResolvedTheme();
     const t = THEMES[theme];
 
-    if (this.config.type === 'card') {
-      if (!this.container) return;
-      const values = this.lastData.map(row => Number(row[this.config.measure])).filter(v => !isNaN(v));
-      const totalValue = values.reduce((sum, val) => sum + val, 0);
-      const displayValue = this.config.valueFormatter ? this.config.valueFormatter(totalValue) : String(totalValue);
-      const valueColor = this.config.colors ? this.config.colors[0] : t.cardValueColor;
-      const cardFont = (t.fontFamily ?? 'sans-serif').replace(/"/g, "'");
-
-      let titleEl = this.container.querySelector('.card-title') as HTMLElement;
-      let valueEl = this.container.querySelector('.card-value') as HTMLElement;
-
-      if (!titleEl || !valueEl) {
-        this.container.innerHTML = `
-          <div class="card-title" style="font-size: clamp(0.85rem, 2.5vw, 1.05rem); font-weight: 600; color: ${t.cardTitleColor}; font-family: ${cardFont}; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
-            ${this.config.title || ''}
-          </div>
-          <div class="card-value" style="font-size: clamp(1.8rem, 5vw, 3.2rem); font-weight: 800; color: ${valueColor}; font-family: ${cardFont}; text-align: center; text-shadow: ${theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;">
-            ${displayValue}
-          </div>
-        `;
-      } else {
-        titleEl.style.fontFamily = cardFont;
-        titleEl.style.color = t.cardTitleColor;
-        valueEl.style.fontFamily = cardFont;
-        valueEl.style.textShadow = theme === '3D' ? '1px 1px 0px #fff, 2px 2px 0px rgba(0,0,0,0.1)' : 'none';
-
-        valueEl.style.opacity = '0.2';
-        valueEl.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          valueEl.innerText = displayValue;
-          valueEl.style.color = valueColor;
-          valueEl.style.opacity = '1';
-          valueEl.style.transform = 'scale(1)';
-        }, 150);
-      }
-      return;
-    }
-
     if (!this.container || !this.canvas || !this.ctx) return;
 
     const aggResult = aggregateChartData(data, this.config, this.getResolvedLimitCategories());
@@ -426,6 +391,8 @@ export class Chart {
       this.activeRenderer = new RadarRenderer(renderContext);
     } else if (this.config.type === 'funnel') {
       this.activeRenderer = new FunnelRenderer(renderContext);
+    } else if (this.config.type === 'card') {
+      this.activeRenderer = new CardRenderer(renderContext);
     }
 
     this.hoveredIndex = null;

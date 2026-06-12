@@ -81,6 +81,9 @@ export class Dashboard {
           });
         }
       }
+      this.charts.forEach(chart => {
+        chart.resize();
+      });
     });
     this.resizeObserver.observe(this.container);
   }
@@ -160,6 +163,7 @@ export class Dashboard {
     const resolvedLimit = chart.getConfig().limitCategories ?? this.config.limitCategories;
     chart.setResolvedLimitCategories(resolvedLimit);
 
+    chart.setIsStandalone(false);
     chart.mount(chartContainer);
 
     chart.onFilter((filter: Filter) => {
@@ -338,6 +342,7 @@ export class Dashboard {
     newChart.setResolvedTheme(resolvedTheme);
     const resolvedLimit = newChart.getConfig().limitCategories ?? this.config.limitCategories;
     newChart.setResolvedLimitCategories(resolvedLimit);
+    newChart.setIsStandalone(false);
     newChart.mount(chartContainer);
 
     newChart.onFilter((filter: Filter) => {
