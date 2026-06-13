@@ -52,8 +52,8 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | **`resize`** | `()` | Resizes and redraws the chart manually. |
 | **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the chart current state as a Base64-encoded image data URL. |
 | **`download`** | `(filename?: string, type?: string, options?: any)` | Triggers a browser download of the current chart state as an image file. |
-| **`setIsStandalone`** | `(value: boolean)` | Sets whether the chart runs standalone (which instantiates its own `ResizeObserver`) or is managed inside a dashboard. |
-| **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, disconnecting its resize observer, and removing mouse event listeners. |
+| **`setIsStandalone`** | `(value: boolean)` | Sets whether the chart runs standalone (which registers with the shared `ResizeObserver`) or is managed inside a dashboard. |
+| **`dispose`** | `()` | Cleans up the chart by disposing of the Canvas elements, unobserving from the shared resize observer, and removing mouse event listeners. |
 
 
 ---

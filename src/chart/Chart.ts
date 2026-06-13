@@ -12,6 +12,7 @@ import { CardRenderer } from './renderers/CardRenderer';
 import { getNiceTicks, updateTooltip } from './renderers/utils/canvasUtils';
 import { getColorDef, resolveColorString } from './renderers/utils/styleUtils';
 import { injectGoogleFonts } from '../utils/fontLoader';
+import { resizeObserverManager } from '../utils/resizeObserverManager';
 import { aggregateChartData } from '../utils/dataProcessor';
 import { getOthersBreakdownHTML } from '../utils/tooltipFormatter';
 
@@ -30,7 +31,6 @@ export class Chart {
   private othersDetails: { category: string, value: number }[] = [];
   private rawTotal = 0;
   private dashboardTheme?: ChartTheme;
-  private resizeObserver?: ResizeObserver;
   private isStandalone = true;
 
   // Custom canvas engine properties
@@ -184,12 +184,11 @@ export class Chart {
     }
 
     if (this.isStandalone) {
-      this.resizeObserver = new ResizeObserver(() => {
+      resizeObserverManager.observe(container, () => {
         if (this.lastData.length > 0) {
           this.render(this.lastData, this.activeFilters, false);
         }
       });
-      this.resizeObserver.observe(container);
     }
 
     if (this.lastData.length > 0) {
@@ -324,9 +323,8 @@ export class Chart {
 
   public dispose() {
     this.animator.cancel();
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = undefined;
+    if (this.container) {
+      resizeObserverManager.unobserve(this.container);
     }
     
     if (this.canvas && this.container?.contains(this.canvas)) {

@@ -1,4 +1,5 @@
 import { Chart } from '../chart/Chart';
+import { resizeObserverManager } from '../utils/resizeObserverManager';
 import { Filter } from '../chart/types';
 import { ChartTheme, THEMES } from '../themes/themes';
 import { parseCSV } from '../utils/csvParser';
@@ -22,8 +23,6 @@ export class Dashboard {
   private data: any[] = [];
   /** Array of currently active global dimension filters */
   private activeFilters: Filter[] = [];
-  /** ResizeObserver instance for handling container resizing */
-  private resizeObserver?: ResizeObserver;
   /** Element reference for the global active filters toolbar */
   private toolbarEl?: HTMLElement;
 
@@ -55,37 +54,34 @@ export class Dashboard {
     this.container.style.gap = this.config.gap!;
     this.applyDashboardTheme(this.config.theme ?? 'common');
 
-    this.resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        const width = entry.contentRect.width;
-        if (width < 576) {
-          this.container.style.gridTemplateColumns = '1fr';
-          this.charts.forEach(chart => {
-            const child = chart.getContainer();
-            if (child) child.style.gridColumn = 'span 1';
-          });
-        } else if (width < 992 && this.config.columns! > 2) {
-          const tabletCols = Math.min(2, this.config.columns!);
-          this.container.style.gridTemplateColumns = `repeat(${tabletCols}, 1fr)`;
-          this.charts.forEach(chart => {
-            const child = chart.getContainer();
-            if (child) child.style.gridColumn = `span 1`;
-          });
-        } else {
-          this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
-          this.charts.forEach(chart => {
-            const child = chart.getContainer();
-            if (child) {
-              child.style.gridColumn = `span ${Math.min(chart.widthColumns, this.config.columns!)}`;
-            }
-          });
-        }
+    resizeObserverManager.observe(this.container, entry => {
+      const width = entry.contentRect.width;
+      if (width < 576) {
+        this.container.style.gridTemplateColumns = '1fr';
+        this.charts.forEach(chart => {
+          const child = chart.getContainer();
+          if (child) child.style.gridColumn = 'span 1';
+        });
+      } else if (width < 992 && this.config.columns! > 2) {
+        const tabletCols = Math.min(2, this.config.columns!);
+        this.container.style.gridTemplateColumns = `repeat(${tabletCols}, 1fr)`;
+        this.charts.forEach(chart => {
+          const child = chart.getContainer();
+          if (child) child.style.gridColumn = `span 1`;
+        });
+      } else {
+        this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
+        this.charts.forEach(chart => {
+          const child = chart.getContainer();
+          if (child) {
+            child.style.gridColumn = `span ${Math.min(chart.widthColumns, this.config.columns!)}`;
+          }
+        });
       }
       this.charts.forEach(chart => {
         chart.resize();
       });
     });
-    this.resizeObserver.observe(this.container);
   }
 
   /**
@@ -295,9 +291,8 @@ export class Dashboard {
    * Cleans up the dashboard by disposing of all child charts, disconnecting resize observers, and clearing listeners.
    */
   public dispose() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = undefined;
+    if (this.container) {
+      resizeObserverManager.unobserve(this.container);
     }
     this.removeAllCharts();
   }
