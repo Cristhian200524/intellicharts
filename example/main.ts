@@ -1,4 +1,4 @@
-import { Dashboard, Chart, ChartTheme } from '../src/index';
+import { Dashboard, Chart, ChartTheme, THEMES } from '../src/index';
 
 const csvData = `category,region,sales
 Electronics,North,1500
@@ -104,6 +104,18 @@ dashboard.addChart(chartRadar);
 dashboard.addChart(chartFunnel);
 dashboard.addChart(chartLine);
 
+function applyThemeToDemo(theme: ChartTheme) {
+  const styles = THEMES[theme];
+  if (!styles) return;
+  const root = document.documentElement;
+  root.style.setProperty('--body-bg', styles.dashboardBackground ?? '#f1f5f9');
+  root.style.setProperty('--text-color', styles.dashboardTextColor ?? '#0f172a');
+  root.style.setProperty('--panel-bg', styles.containerBackground);
+  root.style.setProperty('--panel-border', styles.containerBorder === 'none' ? 'rgba(0,0,0,0.05)' : styles.containerBorder);
+}
+
+applyThemeToDemo('common');
+
 dashboard.setData(csvData);
 
 const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement;
@@ -113,7 +125,7 @@ if (themeSelector) {
   themeSelector.addEventListener('change', () => {
     const selectedTheme = themeSelector.value as ChartTheme;
     dashboard.setTheme(selectedTheme);
-    document.body.className = `theme-${selectedTheme}`;
+    applyThemeToDemo(selectedTheme);
     if (currentThemeLabel) {
       currentThemeLabel.innerText = selectedTheme === '3D' ? 'Volumetric 3D' : selectedTheme;
     }

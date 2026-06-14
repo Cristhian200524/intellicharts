@@ -348,6 +348,25 @@ export class Dashboard {
       newChart.render(this.getFilteredDataForChart(newChart), this.activeFilters);
     }
   }
+  public updateChartLayout(chart: Chart) {
+    const chartContainer = chart.getContainer();
+    if (!chartContainer) return;
+
+    chartContainer.style.height = `calc(${this.config.rowHeight} * ${chart.heightRows} + ${this.config.gap} * (${chart.heightRows} - 1))`;
+    chartContainer.style.gridColumn = `span ${Math.min(chart.widthColumns, this.config.columns!)}`;
+    chartContainer.style.gridRow = `span ${chart.heightRows}`;
+
+    const resolvedTheme = chart.getConfig().theme ?? this.config.theme ?? 'common';
+    chart.setResolvedTheme(resolvedTheme);
+    chart.applyContainerTheme(resolvedTheme);
+
+    const resolvedLimit = chart.getConfig().limitCategories ?? this.config.limitCategories;
+    chart.setResolvedLimitCategories(resolvedLimit);
+
+    if (this.data.length > 0) {
+      chart.render(this.getFilteredDataForChart(chart), this.activeFilters, true);
+    }
+  }
 
   /**
    * Finds a chart by its array index, or by matching its unique ID, dimension or title string.

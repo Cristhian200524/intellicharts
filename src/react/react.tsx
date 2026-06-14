@@ -121,7 +121,22 @@ export const Chart = forwardRef<IntelliCharts, ChartProps>(
         }
         initialized.current = false;
       };
-    }, [dashboard, configKey]);
+    }, [dashboard]);
+
+    const isInitial = useRef(true);
+    useEffect(() => {
+      if (isInitial.current) {
+        isInitial.current = false;
+        return;
+      }
+      if (chartInstance.current && initialized.current) {
+        const chart = chartInstance.current;
+        chart.updateConfig(config);
+        if (dashboard) {
+          dashboard.updateChartLayout(chart);
+        }
+      }
+    }, [configKey, dashboard]);
 
     useEffect(() => {
       if (!dashboard && chartInstance.current && data) {

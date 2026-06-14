@@ -64,7 +64,7 @@ export class Chart {
   }
 
   public getResolvedLimitCategories(): number | undefined {
-    return this.resolvedLimitCategories;
+    return this.resolvedLimitCategories ?? this.config.limitCategories;
   }
 
   public setDashboardTheme(theme?: ChartTheme) {
@@ -93,6 +93,25 @@ export class Chart {
 
   public getConfig(): ChartConfig {
     return this.config;
+  }
+
+  public updateConfig(newConfig: Partial<ChartConfig>) {
+    this.config = { ...this.config, ...newConfig };
+    this.widthColumns = this.config.column ?? this.config.widthColumns ?? 1;
+    this.heightRows = this.config.heightRows ?? 1;
+
+    if (this.isStandalone) {
+      if (newConfig.limitCategories !== undefined) {
+        this.resolvedLimitCategories = newConfig.limitCategories;
+      }
+      if (newConfig.theme !== undefined) {
+        this.setResolvedTheme(newConfig.theme);
+        this.applyContainerTheme(newConfig.theme);
+      }
+      if (this.lastData.length > 0) {
+        this.render(this.lastData, this.activeFilters, true);
+      }
+    }
   }
 
   public applyContainerTheme(theme: ChartTheme) {
