@@ -37,8 +37,9 @@ export abstract class BaseRenderer {
   protected renderTitle(): void {
     const { ctx, width, config, styles } = this.context;
     if (!config.title) return;
+    const titleSize = config.titleFontSize || 14;
     ctx.fillStyle = styles.textColor;
-    ctx.font = `bold 14px ${styles.fontFamily || 'sans-serif'}`;
+    ctx.font = `bold ${titleSize}px ${styles.fontFamily || 'sans-serif'}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     const truncatedTitle = truncateText(ctx, config.title, width - 30);

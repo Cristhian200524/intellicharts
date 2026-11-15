@@ -1,15 +1,18 @@
 import { BaseRenderer } from './BaseRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyLine, drawSketchyArc, truncateText } from './utils/canvasUtils';
+import { getCanvasColor, drawSketchyLine, drawSketchyArc, truncateText, resolveSize } from './utils/canvasUtils';
 import { getColorDef } from './utils/styleUtils';
 
 /** Renders Radar charts with polygon grids, spokes, and data polygons. */
 export class RadarRenderer extends BaseRenderer {
   private getLayout() {
-    const { width, height } = this.context;
-    const cx = width / 2;
-    const cy = height / 2 + 15;
-    const maxRadius = Math.max(0, Math.min(width, height - 90) / 2 * 0.75);
+    const { width, height, config } = this.context;
+    const cx = resolveSize(config.center?.[0], width, width / 2);
+    const cy = resolveSize(config.center?.[1], height, height / 2 + 15);
+    const defaultRadius = Math.max(0, Math.min(width, height - 90) / 2 * 0.75);
+    const maxRefRadius = Math.max(0, Math.min(width, height) / 2);
+    const rawRadius = Array.isArray(config.radius) ? config.radius[1] ?? config.radius[0] : config.radius;
+    const maxRadius = Math.max(0, resolveSize(rawRadius, maxRefRadius, defaultRadius));
     return { cx, cy, maxRadius };
   }
 
@@ -112,26 +115,30 @@ export class RadarRenderer extends BaseRenderer {
         ctx.stroke();
       }
 
-      ctx.fillStyle = styles.textColor;
-      ctx.font = `10px ${styles.fontFamily || 'sans-serif'}`;
+      if (config.showLabels !== false) {
+        const fontSize = config.fontSize || 10;
+        ctx.fillStyle = styles.textColor;
+        ctx.font = `${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
 
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      
-      const lblX = cx + (maxRadius + 15) * cos;
-      const lblY = cy + (maxRadius + 12) * sin;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        
+        const lblX = cx + (maxRadius + 15) * cos;
+        const lblY = cy + (maxRadius + 12) * sin;
 
-      if (Math.abs(cos) < 0.1) {
-        ctx.textAlign = 'center';
-      } else {
-        ctx.textAlign = cos > 0 ? 'left' : 'right';
+        if (Math.abs(cos) < 0.1) {
+          ctx.textAlign = 'center';
+        } else {
+          ctx.textAlign = cos > 0 ? 'left' : 'right';
+        }
+
+        ctx.textBaseline = 'middle';
+
+        const maxTextWidth = cos > 0 ? (width - lblX - 8) : (lblX - 8);
+        const formattedCat = config.labelFormatter ? config.labelFormatter(String(cat)) : String(cat);
+        const truncatedLabel = truncateText(ctx, formattedCat, Math.max(40, maxTextWidth));
+        ctx.fillText(truncatedLabel, lblX, lblY);
       }
-
-      ctx.textBaseline = 'middle';
-
-      const maxTextWidth = cos > 0 ? (width - lblX - 8) : (lblX - 8);
-      const truncatedLabel = truncateText(ctx, String(cat), Math.max(40, maxTextWidth));
-      ctx.fillText(truncatedLabel, lblX, lblY);
     });
 
     const points = categories.map((_, i) => {

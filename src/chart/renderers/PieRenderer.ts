@@ -1,24 +1,35 @@
 import { BaseRenderer } from './BaseRenderer';
 import { Filter } from '../types';
-import { getCanvasColor, drawSketchyArc, drawSketchyLine, truncateText } from './utils/canvasUtils';
+import { getCanvasColor, drawSketchyArc, drawSketchyLine, truncateText, resolveSize } from './utils/canvasUtils';
 import { computeItemOpacity, getColorDef, resolveColorString, isRoundedTheme } from './utils/styleUtils';
 
 /** Renders Pie and Donut charts with optional rounded sectors. */
 export class PieRenderer extends BaseRenderer {
   private getLayout() {
     const { width, height, config } = this.context;
-    const cx = width / 2;
-    const cy = height / 2 + 10;
+    const cx = resolveSize(config.center?.[0], width, width / 2);
+    const cy = resolveSize(config.center?.[1], height, height / 2 + 10);
 
-    const outerRadius = Math.max(0, Math.min(width * 0.55, height - 90) / 2);
+    const maxRefRadius = Math.max(0, Math.min(width, height) / 2);
+    const defaultOuter = Math.max(0, Math.min(width * 0.55, height - 90) / 2);
     const isDonut = config.type === 'donut';
-    const innerRadius = isDonut ? outerRadius * 0.55 : 0;
+
+    let outerRadius = defaultOuter;
+    let innerRadius = isDonut ? defaultOuter * 0.55 : 0;
+
+    if (Array.isArray(config.radius)) {
+      innerRadius = resolveSize(config.radius[0], maxRefRadius, innerRadius);
+      outerRadius = resolveSize(config.radius[1], maxRefRadius, outerRadius);
+    } else if (config.radius !== undefined) {
+      outerRadius = resolveSize(config.radius, maxRefRadius, defaultOuter);
+      innerRadius = isDonut ? outerRadius * 0.55 : 0;
+    }
 
     return {
       cx,
       cy,
-      outerRadius,
-      innerRadius
+      outerRadius: Math.max(0, outerRadius),
+      innerRadius: Math.max(0, Math.min(innerRadius, outerRadius))
     };
   }
 
@@ -52,6 +63,16 @@ export class PieRenderer extends BaseRenderer {
     const chartFilter = activeFilters.find(f => f.field === config.dimension);
 
     let startAngle = -Math.PI / 2;
+    const labelItems: {
+      tx1: number;
+      ty1: number;
+      tx2: number;
+      labelY: number;
+      isRightSide: boolean;
+      opacity: number;
+      sliceColor: string;
+      labelText: string;
+    }[] = [];
 
     categories.forEach((cat, index) => {
       const val = ratios[index] || 0;
@@ -158,12 +179,7 @@ export class PieRenderer extends BaseRenderer {
       ctx.restore();
 
       // Outside labels and connecting lines
-      if (pct > 0.02) {
-        ctx.save();
-        ctx.globalAlpha = opacity;
-        ctx.font = `10px ${styles.fontFamily || 'sans-serif'}`;
-        ctx.fillStyle = styles.textColor;
-
+      if (config.showLabels !== false && pct > 0.02) {
         const rTickStart = currentOuterRadius + 2;
         const rTickMid = currentOuterRadius + 12;
 
@@ -171,23 +187,7 @@ export class PieRenderer extends BaseRenderer {
         const ty1 = cy + rTickStart * Math.sin(midAngle);
         const tx2 = cx + rTickMid * Math.cos(midAngle);
         const ty2 = cy + rTickMid * Math.sin(midAngle);
-
         const isRightSide = Math.cos(midAngle) >= 0;
-        const tailLen = 8;
-        const tx3 = tx2 + (isRightSide ? tailLen : -tailLen);
-
-        const sliceColor = resolveColorString(colorDef);
-
-        ctx.strokeStyle = sliceColor;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(tx1, ty1);
-        ctx.lineTo(tx2, ty2);
-        ctx.lineTo(tx3, ty2);
-        ctx.stroke();
-
-        ctx.textAlign = isRightSide ? 'left' : 'right';
-        ctx.textBaseline = 'middle';
 
         const targetVal = targetValues[index] || 0;
         let displayVal = '';
@@ -199,17 +199,82 @@ export class PieRenderer extends BaseRenderer {
           displayVal = config.valueFormatter ? config.valueFormatter(targetVal) : String(targetVal);
         }
 
-        const labelText = `${cat}: ${displayVal}`;
-        const maxTextWidth = isRightSide ? (width - tx3 - 10) : (tx3 - 10);
+        const formattedCat = config.labelFormatter ? config.labelFormatter(String(cat)) : String(cat);
+        const labelText = `${formattedCat}: ${displayVal}`;
 
-        if (maxTextWidth > 20) {
-          const truncatedLabel = truncateText(ctx, labelText, maxTextWidth);
-          ctx.fillText(truncatedLabel, tx3 + (isRightSide ? 4 : -4), ty2);
-        }
-        ctx.restore();
+        labelItems.push({
+          tx1,
+          ty1,
+          tx2,
+          labelY: ty2,
+          isRightSide,
+          opacity,
+          sliceColor: resolveColorString(colorDef),
+          labelText
+        });
       }
 
       startAngle = endAngle;
+    });
+
+    const fontSize = config.fontSize || 10;
+    if (config.avoidLabelOverlap && labelItems.length > 0) {
+      const minGap = fontSize + 4;
+      const minY = config.title ? (config.titleFontSize || 14) + 26 : 12;
+      const maxY = height - 12;
+
+      [true, false].forEach(side => {
+        const sideLabels = labelItems
+          .filter(item => item.isRightSide === side)
+          .sort((a, b) => a.labelY - b.labelY);
+
+        if (sideLabels.length === 0) return;
+
+        if (sideLabels[0].labelY < minY) {
+          sideLabels[0].labelY = minY;
+        }
+        for (let i = 1; i < sideLabels.length; i++) {
+          if (sideLabels[i].labelY < sideLabels[i - 1].labelY + minGap) {
+            sideLabels[i].labelY = sideLabels[i - 1].labelY + minGap;
+          }
+        }
+        if (sideLabels[sideLabels.length - 1].labelY > maxY) {
+          sideLabels[sideLabels.length - 1].labelY = maxY;
+          for (let i = sideLabels.length - 2; i >= 0; i--) {
+            if (sideLabels[i].labelY > sideLabels[i + 1].labelY - minGap) {
+              sideLabels[i].labelY = Math.max(minY, sideLabels[i + 1].labelY - minGap);
+            }
+          }
+        }
+      });
+    }
+
+    const tailLen = 8;
+    labelItems.forEach(item => {
+      ctx.save();
+      ctx.globalAlpha = item.opacity;
+      ctx.font = `${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
+      ctx.fillStyle = styles.textColor;
+
+      const tx3 = item.tx2 + (item.isRightSide ? tailLen : -tailLen);
+
+      ctx.strokeStyle = item.sliceColor;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(item.tx1, item.ty1);
+      ctx.lineTo(item.tx2, item.labelY);
+      ctx.lineTo(tx3, item.labelY);
+      ctx.stroke();
+
+      ctx.textAlign = item.isRightSide ? 'left' : 'right';
+      ctx.textBaseline = 'middle';
+
+      const maxTextWidth = item.isRightSide ? (width - tx3 - 10) : (tx3 - 10);
+      if (maxTextWidth > 20) {
+        const truncatedLabel = truncateText(ctx, item.labelText, maxTextWidth);
+        ctx.fillText(truncatedLabel, tx3 + (item.isRightSide ? 4 : -4), item.labelY);
+      }
+      ctx.restore();
     });
 
     ctx.restore();

@@ -117,14 +117,18 @@ export class BarRenderer extends AxisRenderer {
       ctx.restore();
 
       // X-axis labels
-      ctx.save();
-      ctx.fillStyle = styles.textColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.font = `10px ${styles.fontFamily || 'sans-serif'}`;
-      const truncatedLabel = truncateText(ctx, String(cat), barAreaWidth - 6);
-      ctx.fillText(truncatedLabel, xMid, this.padding.top + plotHeight + 6);
-      ctx.restore();
+      if (config.showLabels !== false) {
+        const fontSize = config.fontSize || 10;
+        ctx.save();
+        ctx.fillStyle = styles.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = `${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
+        const formattedCat = config.labelFormatter ? config.labelFormatter(String(cat)) : String(cat);
+        const truncatedLabel = truncateText(ctx, formattedCat, barAreaWidth - 6);
+        ctx.fillText(truncatedLabel, xMid, this.padding.top + plotHeight + 6);
+        ctx.restore();
+      }
     });
 
     ctx.restore();

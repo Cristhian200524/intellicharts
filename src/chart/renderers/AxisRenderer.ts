@@ -29,9 +29,10 @@ export abstract class AxisRenderer extends BaseRenderer {
   ) {
     const { width, height } = this.context;
     const { ticks } = getNiceTicks(0, yMax, 5);
+    const fontSize = config.fontSize || 10;
 
     ctx.save();
-    ctx.font = `10px ${fontFamily}`;
+    ctx.font = `${fontSize}px ${fontFamily}`;
     let maxTextWidth = 0;
     
     ticks.forEach(tick => {
@@ -48,9 +49,13 @@ export abstract class AxisRenderer extends BaseRenderer {
     });
     ctx.restore();
 
-    // Dynamically adjust left padding to prevent Y-axis labels from being cut off
-    const currentPaddingLeft = Math.max(30, maxTextWidth + 12);
-    this.padding.left = currentPaddingLeft;
+    const currentPaddingLeft = config.padding?.left ?? Math.max(30, maxTextWidth + 12);
+    this.padding = {
+      top: config.padding?.top ?? DEFAULT_PADDING.top,
+      right: config.padding?.right ?? DEFAULT_PADDING.right,
+      bottom: config.padding?.bottom ?? DEFAULT_PADDING.bottom,
+      left: currentPaddingLeft
+    };
 
     const plotWidth = Math.max(0, width - this.padding.left - this.padding.right);
     const plotHeight = Math.max(0, height - this.padding.top - this.padding.bottom);
@@ -82,7 +87,8 @@ export abstract class AxisRenderer extends BaseRenderer {
     const { ctx, width } = this.context;
 
     // 1. Gridlines and Y-axis labels
-    ctx.font = `10px ${styles.fontFamily || 'sans-serif'}`;
+    const fontSize = config.fontSize || 10;
+    ctx.font = `${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
 

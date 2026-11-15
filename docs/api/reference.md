@@ -20,6 +20,8 @@ The main layout and synchronization engine container.
 | **`removeChart`** | `(chart: Chart)` | Removes a single chart, cleaning up its DOM container and disposing of its resources. |
 | **`removeAllCharts`** | `()` | Removes all registered charts and clears the dashboard grid container completely. |
 | **`replaceChart`** | `(oldChart: Chart, newChart: Chart)` | Swaps an existing chart with a new one in-place, reusing the DOM slot and resizing it dynamically. |
+| **`updateChartLayout`** | `(chart: Chart)` | Updates layout grid styles after chart updates. |
+| **`updateConfig`** | `(newConfig: Partial<DashboardConfig>)` | Updates dashboard layout settings in-place and re-renders. |
 | **`getChart`** | `(identifier: string \| number)` | Retrieves a chart from the dashboard by index, or by matching its `id`, `dimension` or `title` string. |
 | **`hasChart`** | `(chart: Chart \| string)` | Checks if a chart exists in the dashboard by reference, or by matching its `id`, `dimension` or `title` string. |
 | **`getConfig`** | `()` | Returns the active `DashboardConfig` layout settings. |
@@ -49,6 +51,7 @@ Represents a single widget (bar, line, pie, donut, radar, funnel, or KPI card).
 | **`onFilter`** | `(cb: (filter: Filter) => void)` | Registers a category click callback for cross-filtering. |
 | **`getContainer`** | `()` | Returns the HTMLElement wrapper container of the chart. |
 | **`getConfig`** | `()` | Returns the active `ChartConfig` settings of the chart. |
+| **`updateConfig`** | `(newConfig: Partial<ChartConfig>)` | Updates config in-place and re-renders. |
 | **`resize`** | `()` | Resizes and redraws the chart manually. |
 | **`getDataURL`** | `(type?: string, encoderOptions?: any)` | Exports the chart current state as a Base64-encoded image data URL. |
 | **`download`** | `(filename?: string, type?: string, options?: any)` | Triggers a browser download of the current chart state as an image file. |
@@ -85,6 +88,15 @@ Parameters for instantiating a `Chart` widget:
 - `asPercentage`: (Optional) Convert values into percentages dynamically calculated against the currently filtered total.
 - `theme`: (Optional) Local visual theme override.
 - `limitCategories`: (Optional) Maximum categories to show. Groups extras under `"Others"`. Prioritized over dashboard-level limit.
+- `center`: (Optional) Custom `[x, y]` center in px or `%` for `pie`, `donut`, and `radar` charts (e.g., `['50%', '58%']`).
+- `radius`: (Optional) Custom radius or `[innerRadius, outerRadius]` in px or `%` for `pie`, `donut`, and `radar` charts (e.g., `['36%', '60%']`).
+- `avoidLabelOverlap`: (Optional) Prevents radial labels from overlapping each other or the title in `pie` and `donut` charts.
+- `labelFormatter`: (Optional) Callback `(category: string) => string` to format or abbreviate category labels.
+- `showLabels`: (Optional) Whether to render category/data labels on the chart (default: `true`).
+- `padding`: (Optional) Custom plot padding `{ top?, right?, bottom?, left? }` in pixels.
+- `fontSize`: (Optional) Base font size in pixels for axis and data labels (default: `10`).
+- `titleFontSize`: (Optional) Font size in pixels for the chart title (default: `14`).
+- `smooth`: (Optional) Enable or disable smooth Bezier curves on `line` charts.
 
 ---
 

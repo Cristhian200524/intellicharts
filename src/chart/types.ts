@@ -30,6 +30,24 @@ export interface ChartConfig {
   theme?: ChartTheme;
   /** Limit the number of categories rendered, grouping remaining into 'Others' */
   limitCategories?: number;
+  /** Custom center [x, y] in px or percentage for pie, donut, and radar charts */
+  center?: [number | string, number | string];
+  /** Custom radius or [innerRadius, outerRadius] in px or percentage for pie, donut, and radar charts */
+  radius?: number | string | [number | string, number | string];
+  /** Prevent radial labels from overlapping each other or the title in pie and donut charts */
+  avoidLabelOverlap?: boolean;
+  /** Custom formatter function for category labels */
+  labelFormatter?: (category: string) => string;
+  /** Whether to render category/data labels on the chart (default: true) */
+  showLabels?: boolean;
+  /** Custom plot area padding overrides in pixels */
+  padding?: { top?: number; right?: number; bottom?: number; left?: number };
+  /** Base font size in pixels for axis and data labels (default: 10) */
+  fontSize?: number;
+  /** Font size in pixels for the chart title (default: 14) */
+  titleFontSize?: number;
+  /** Enable smooth Bezier curve rendering on line charts */
+  smooth?: boolean;
 }
 
 /**

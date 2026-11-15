@@ -64,7 +64,7 @@ export class LineRenderer extends AxisRenderer {
       return { x, y };
     });
 
-    const isSmooth = styles.extraLineStyle?.smooth ?? false;
+    const isSmooth = config.smooth ?? styles.extraLineStyle?.smooth ?? false;
     const colorDef = getColorDef(0, config, styles);
     const strokeColor = getCanvasColor(ctx, colorDef, this.padding.left, this.padding.top, plotWidth, plotHeight);
 
@@ -178,14 +178,18 @@ export class LineRenderer extends AxisRenderer {
       ctx.restore();
 
       // X-axis labels
-      ctx.save();
-      ctx.fillStyle = styles.textColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.font = `10px ${styles.fontFamily || 'sans-serif'}`;
-      const truncatedLabel = truncateText(ctx, String(cat), areaWidth - 6);
-      ctx.fillText(truncatedLabel, p.x, this.padding.top + plotHeight + 6);
-      ctx.restore();
+      if (config.showLabels !== false) {
+        const fontSize = config.fontSize || 10;
+        ctx.save();
+        ctx.fillStyle = styles.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = `${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
+        const formattedCat = config.labelFormatter ? config.labelFormatter(String(cat)) : String(cat);
+        const truncatedLabel = truncateText(ctx, formattedCat, areaWidth - 6);
+        ctx.fillText(truncatedLabel, p.x, this.padding.top + plotHeight + 6);
+        ctx.restore();
+      }
     });
 
     ctx.restore();

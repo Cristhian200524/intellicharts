@@ -6,11 +6,12 @@ import { computeItemOpacity, getColorDef, getItemTextColor, isStyledTheme, isRou
 /** Renders Funnel charts as stacked descending trapezoids. */
 export class FunnelRenderer extends BaseRenderer {
   private getLayout() {
-    const { width, height } = this.context;
+    const { width, height, config } = this.context;
     const cx = width / 2;
     const plotWidth = width * 0.75;
-    const plotHeight = Math.max(0, height - 80);
-    const startY = 60;
+    const startY = config.padding?.top ?? 60;
+    const bottomPad = config.padding?.bottom ?? 20;
+    const plotHeight = Math.max(0, height - startY - bottomPad);
     const gap = 3;
 
     return {
@@ -137,27 +138,31 @@ export class FunnelRenderer extends BaseRenderer {
       ctx.restore();
 
       // Labels inside segments
-      ctx.save();
-      ctx.globalAlpha = finalOpacity;
-      ctx.font = `bold 10px ${styles.fontFamily || 'sans-serif'}`;
-      ctx.fillStyle = getItemTextColor(theme, colorDef);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      if (config.showLabels !== false) {
+        const fontSize = config.fontSize || 10;
+        ctx.save();
+        ctx.globalAlpha = finalOpacity;
+        ctx.font = `bold ${fontSize}px ${styles.fontFamily || 'sans-serif'}`;
+        ctx.fillStyle = getItemTextColor(theme, colorDef);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-      const targetMaxVal = sorted[0]?.targetVal || 100;
-      let displayVal = '';
-      if (config.asPercentage) {
-        displayVal = `${((item.targetVal / targetMaxVal) * 100).toFixed(0)}%`;
-      } else {
-        displayVal = config.valueFormatter ? config.valueFormatter(item.targetVal) : String(item.targetVal);
+        const targetMaxVal = sorted[0]?.targetVal || 100;
+        let displayVal = '';
+        if (config.asPercentage) {
+          displayVal = `${((item.targetVal / targetMaxVal) * 100).toFixed(0)}%`;
+        } else {
+          displayVal = config.valueFormatter ? config.valueFormatter(item.targetVal) : String(item.targetVal);
+        }
+
+        const formattedCat = config.labelFormatter ? config.labelFormatter(String(item.cat)) : String(item.cat);
+        const labelText = `${formattedCat}: ${displayVal}`;
+        const avgWidth = (topWidth + bottomWidth) / 2;
+        const truncatedLabel = truncateText(ctx, labelText, avgWidth - 16);
+
+        ctx.fillText(truncatedLabel, cx, y1 + itemHeight / 2);
+        ctx.restore();
       }
-
-      const labelText = `${item.cat}: ${displayVal}`;
-      const avgWidth = (topWidth + bottomWidth) / 2;
-      const truncatedLabel = truncateText(ctx, labelText, avgWidth - 16);
-
-      ctx.fillText(truncatedLabel, cx, y1 + itemHeight / 2);
-      ctx.restore();
     });
 
     ctx.restore();

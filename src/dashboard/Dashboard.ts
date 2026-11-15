@@ -93,6 +93,18 @@ export class Dashboard {
     return this.config;
   }
 
+  public updateConfig(newConfig: Partial<DashboardConfig>) {
+    this.config = { ...this.config, ...newConfig };
+    this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
+    this.container.style.gap = this.config.gap!;
+    this.applyDashboardTheme(this.config.theme ?? 'common');
+    this.renderToolbar();
+    this.charts.forEach(chart => {
+      chart.setDashboardTheme(this.config.theme);
+      this.updateChartLayout(chart);
+    });
+  }
+
   /**
    * Returns the active raw dataset loaded in the dashboard.
    */

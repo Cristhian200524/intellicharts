@@ -332,3 +332,19 @@ export function isDarkColor(colorDef: any): boolean {
   const luminance = (r * 299 + g * 587 + b * 114) / 1000;
   return luminance < 140;
 }
+
+export function resolveSize(
+  value: number | string | undefined,
+  reference: number,
+  fallback: number
+): number {
+  if (value === undefined) return fallback;
+  if (typeof value === 'number') return value;
+  const trimmed = value.trim();
+  if (trimmed.endsWith('%')) {
+    const pct = parseFloat(trimmed);
+    return isNaN(pct) ? fallback : (pct / 100) * reference;
+  }
+  const num = parseFloat(trimmed);
+  return isNaN(num) ? fallback : num;
+}

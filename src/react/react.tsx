@@ -34,7 +34,7 @@ export const Dashboard = forwardRef<IntelliDashboard, DashboardProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const [dashboard, setDashboard] = useState<IntelliDashboard | null>(null);
     const initialized = useRef(false);
-    const configKey = `${config.columns}-${config.gap}-${config.rowHeight}-${config.theme}-${config.limitCategories}`;
+    const configKey = `${config.columns}-${config.gap}-${config.rowHeight}-${config.theme}-${config.limitCategories}-${config.showFilterToolbar}`;
 
     useImperativeHandle(ref, () => dashboard!, [dashboard]);
 
@@ -51,7 +51,18 @@ export const Dashboard = forwardRef<IntelliDashboard, DashboardProps>(
           initialized.current = false;
         }
       };
-    }, [configKey]);
+    }, []);
+
+    const isInitialDb = useRef(true);
+    useEffect(() => {
+      if (isInitialDb.current) {
+        isInitialDb.current = false;
+        return;
+      }
+      if (dashboard && initialized.current) {
+        dashboard.updateConfig(config);
+      }
+    }, [configKey, dashboard]);
 
     useEffect(() => {
       if (dashboard && data) {
@@ -92,7 +103,7 @@ export const Chart = forwardRef<IntelliCharts, ChartProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<IntelliCharts | null>(null);
     const initialized = useRef(false);
-    const configKey = `${config.type}-${config.dimension}-${config.measure}-${config.title}-${config.asPercentage}-${config.theme}-${config.column}-${config.widthColumns}-${config.heightRows}-${config.colors?.join(',') || ''}-${config.valueFormatter?.toString() || ''}-${config.limitCategories}`;
+    const configKey = `${config.type}-${config.dimension}-${config.measure}-${config.title}-${config.asPercentage}-${config.theme}-${config.column}-${config.widthColumns}-${config.heightRows}-${config.colors?.join(',') || ''}-${config.valueFormatter?.toString() || ''}-${config.limitCategories}-${config.center?.join(',') || ''}-${Array.isArray(config.radius) ? config.radius.join(',') : config.radius || ''}-${config.avoidLabelOverlap}-${config.labelFormatter?.toString() || ''}-${config.showLabels}-${JSON.stringify(config.padding || '')}-${config.fontSize}-${config.titleFontSize}-${config.smooth}`;
 
     useImperativeHandle(ref, () => chartInstance.current!, [chartInstance.current]);
 
