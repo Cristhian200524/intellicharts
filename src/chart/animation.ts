@@ -47,6 +47,10 @@ export class Animator {
     }
   }
 
+  public isRunning(): boolean {
+    return this.frameId !== null;
+  }
+
   /**
    * Cubic easing curve.
    */
@@ -94,6 +98,13 @@ export class TransitionManager {
       const val = values[index] ?? 0;
       const ratio = yMax > 0 ? val / yMax : 0;
       this.lastRatios.set(cat, ratio);
+    });
+  }
+
+  public saveCurrentRatios(categories: string[], ratios: number[]): void {
+    this.lastRatios.clear();
+    categories.forEach((cat, index) => {
+      this.lastRatios.set(cat, ratios[index] ?? 0);
     });
   }
 }

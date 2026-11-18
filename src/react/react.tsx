@@ -53,12 +53,10 @@ export const Dashboard = forwardRef<IntelliDashboard, DashboardProps>(
       };
     }, []);
 
-    const isInitialDb = useRef(true);
+    const prevConfigKey = useRef(configKey);
     useEffect(() => {
-      if (isInitialDb.current) {
-        isInitialDb.current = false;
-        return;
-      }
+      if (prevConfigKey.current === configKey) return;
+      prevConfigKey.current = configKey;
       if (dashboard && initialized.current) {
         dashboard.updateConfig(config);
       }
@@ -134,12 +132,10 @@ export const Chart = forwardRef<IntelliCharts, ChartProps>(
       };
     }, [dashboard]);
 
-    const isInitial = useRef(true);
+    const prevConfigKey = useRef(configKey);
     useEffect(() => {
-      if (isInitial.current) {
-        isInitial.current = false;
-        return;
-      }
+      if (prevConfigKey.current === configKey) return;
+      prevConfigKey.current = configKey;
       if (chartInstance.current && initialized.current) {
         const chart = chartInstance.current;
         chart.updateConfig(config);

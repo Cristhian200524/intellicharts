@@ -43,9 +43,12 @@ export class Chart {
   private tooltipEl?: HTMLElement;
   private hoveredIndex: number | null = null;
   private categories: string[] = [];
+  private baseCategories: string[] = [];
   private values: number[] = [];
   private activeFilters: Filter[] = [];
   private prevFilters: Filter[] = [];
+  private lastWidth = 0;
+  private lastHeight = 0;
 
   constructor(config: ChartConfig) {
     injectGoogleFonts();
@@ -203,7 +206,10 @@ export class Chart {
     }
 
     if (this.isStandalone) {
-      resizeObserverManager.observe(container, () => {
+      resizeObserverManager.observe(container, (entry) => {
+        const { width, height } = entry.contentRect;
+        if (width === 0 || height === 0) return;
+        if (Math.abs(width - this.lastWidth) < 1 && Math.abs(height - this.lastHeight) < 1) return;
         if (this.lastData.length > 0) {
           this.render(this.lastData, this.activeFilters, false);
         }
@@ -365,7 +371,20 @@ export class Chart {
     const parsedData = typeof data === 'string' ? parseCSV(data) : data;
     this.lastData = parsedData;
     data = parsedData;
-    this.prevFilters = [...this.activeFilters];
+
+    if (animate) {
+      if (this.categories.length > 0 && (!this.transitionManager.isFirstRender() || this.currentAnimationProgress > 0.05)) {
+        const prevYMax = this.calculateYMax(this.values);
+        const currentDisplayedRatios = this.transitionManager.getInterpolatedRatios(
+          this.categories,
+          this.values,
+          prevYMax,
+          this.currentAnimationProgress
+        );
+        this.transitionManager.saveCurrentRatios(this.categories, currentDisplayedRatios);
+      }
+      this.prevFilters = [...this.activeFilters];
+    }
     this.activeFilters = [...activeFilters];
     const theme = this.getResolvedTheme();
     const t = THEMES[theme];
@@ -373,14 +392,38 @@ export class Chart {
     if (!this.container || !this.canvas || !this.ctx) return;
 
     const aggResult = aggregateChartData(data, this.config, this.getResolvedLimitCategories());
-    this.categories = aggResult.categories;
-    this.values = aggResult.values;
+    if (activeFilters.length === 0) {
+      this.baseCategories = [...aggResult.categories];
+      this.categories = aggResult.categories;
+      this.values = aggResult.values;
+    } else if (
+      this.baseCategories.length > 0 &&
+      aggResult.categories.length > 0 &&
+      this.config.type !== 'card' &&
+      this.config.type !== 'funnel'
+    ) {
+      const valMap = new Map<string, number>();
+      aggResult.categories.forEach((cat, i) => valMap.set(cat, aggResult.values[i] ?? 0));
+      const mergedCategories = [...this.baseCategories];
+      aggResult.categories.forEach(cat => {
+        if (!valMap.has(cat) || !mergedCategories.includes(cat)) {
+          mergedCategories.push(cat);
+        }
+      });
+      this.categories = mergedCategories;
+      this.values = mergedCategories.map(cat => valMap.get(cat) ?? 0);
+    } else {
+      this.categories = aggResult.categories;
+      this.values = aggResult.values;
+    }
     this.othersDetails = aggResult.othersDetails;
     this.rawTotal = aggResult.rawTotal;
 
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
     const rect = this.canvas.getBoundingClientRect();
+    this.lastWidth = rect.width;
+    this.lastHeight = rect.height;
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = rect.width * dpr;
     this.canvas.height = rect.height * dpr;
@@ -426,6 +469,8 @@ export class Chart {
           this.transitionManager.saveRatios(this.categories, this.values, targetYMax);
         }
       );
+    } else if (this.animator.isRunning()) {
+      this.drawFrame(this.currentAnimationProgress);
     } else {
       this.currentAnimationProgress = 1.0;
       this.drawFrame(1.0);
@@ -493,6 +538,8 @@ export class Chart {
       }
       const { max } = getNiceTicks(0, paddedMax, 5);
       return max;
+    } else if (this.config.type === 'pie' || this.config.type === 'donut') {
+      return values.reduce((sum, v) => sum + v, 0) || 100;
     } else if (this.config.type === 'radar') {
       return maxVal > 0 ? maxVal * 1.15 : 100;
     } else if (this.config.type === 'funnel') {

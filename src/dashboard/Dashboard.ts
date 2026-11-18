@@ -25,6 +25,8 @@ export class Dashboard {
   private activeFilters: Filter[] = [];
   /** Element reference for the global active filters toolbar */
   private toolbarEl?: HTMLElement;
+  /** Tracks last observed container width to ignore height-only resize events */
+  private lastContainerWidth = 0;
 
   /**
    * Automatically creates, structures, and mounts a populated dashboard container.
@@ -54,23 +56,30 @@ export class Dashboard {
     this.container.style.gap = this.config.gap!;
     this.applyDashboardTheme(this.config.theme ?? 'common');
 
+    this.lastContainerWidth = Math.round(this.container.getBoundingClientRect().width);
+
     resizeObserverManager.observe(this.container, entry => {
-      const width = entry.contentRect.width;
+      const width = Math.round(entry.contentRect.width);
+      if (width === 0) return;
+
+      const prevWidth = this.lastContainerWidth;
+      this.lastContainerWidth = width;
+
+      let targetGridCols = `repeat(${this.config.columns}, 1fr)`;
       if (width < 576) {
-        this.container.style.gridTemplateColumns = '1fr';
+        targetGridCols = '1fr';
         this.charts.forEach(chart => {
           const child = chart.getContainer();
           if (child) child.style.gridColumn = 'span 1';
         });
       } else if (width < 992 && this.config.columns! > 2) {
         const tabletCols = Math.min(2, this.config.columns!);
-        this.container.style.gridTemplateColumns = `repeat(${tabletCols}, 1fr)`;
+        targetGridCols = `repeat(${tabletCols}, 1fr)`;
         this.charts.forEach(chart => {
           const child = chart.getContainer();
           if (child) child.style.gridColumn = `span 1`;
         });
       } else {
-        this.container.style.gridTemplateColumns = `repeat(${this.config.columns}, 1fr)`;
         this.charts.forEach(chart => {
           const child = chart.getContainer();
           if (child) {
@@ -78,9 +87,15 @@ export class Dashboard {
           }
         });
       }
-      this.charts.forEach(chart => {
-        chart.resize();
-      });
+
+      const layoutColsChanged = this.container.style.gridTemplateColumns !== targetGridCols;
+      this.container.style.gridTemplateColumns = targetGridCols;
+
+      if ((prevWidth > 0 && Math.abs(width - prevWidth) >= 1) || layoutColsChanged) {
+        this.charts.forEach(chart => {
+          chart.resize();
+        });
+      }
     });
   }
 

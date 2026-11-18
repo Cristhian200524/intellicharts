@@ -76,41 +76,43 @@ export class BarRenderer extends AxisRenderer {
       ctx.save();
       ctx.globalAlpha = finalOpacity;
 
-      const colorDef = getColorDef(index, config, styles);
-      const fillStyle = getCanvasColor(ctx, colorDef, xLeft, yTop, barWidth, barHeight);
+      if (barHeight > 0.5) {
+        const colorDef = getColorDef(index, config, styles);
+        const fillStyle = getCanvasColor(ctx, colorDef, xLeft, yTop, barWidth, barHeight);
 
-      ctx.fillStyle = fillStyle;
-
-      const extraStyle = styles.extraBarItemStyle || {};
-
-      if (theme === '3D') {
-        ctx.shadowBlur = extraStyle.shadowBlur || 4;
-        ctx.shadowColor = extraStyle.shadowColor || 'rgba(0,0,0,0.15)';
-        ctx.shadowOffsetX = extraStyle.shadowOffsetX || 2;
-        ctx.shadowOffsetY = extraStyle.shadowOffsetY || 2;
-      }
-
-      if (theme === 'sketch') {
         ctx.fillStyle = fillStyle;
-        ctx.beginPath();
-        ctx.rect(xLeft, yTop, barWidth, barHeight);
-        ctx.fill();
 
-        ctx.strokeStyle = styles.textColor;
-        ctx.lineWidth = 2;
-        drawSketchyRect(ctx, xLeft, yTop, barWidth, barHeight);
-      } else {
-        const radii = extraStyle.borderRadius || 0;
-        if (radii) {
-          drawRoundedRect(ctx, xLeft, yTop, barWidth, barHeight, radii);
+        const extraStyle = styles.extraBarItemStyle || {};
+
+        if (theme === '3D') {
+          ctx.shadowBlur = extraStyle.shadowBlur || 4;
+          ctx.shadowColor = extraStyle.shadowColor || 'rgba(0,0,0,0.15)';
+          ctx.shadowOffsetX = extraStyle.shadowOffsetX || 2;
+          ctx.shadowOffsetY = extraStyle.shadowOffsetY || 2;
+        }
+
+        if (theme === 'sketch') {
+          ctx.fillStyle = fillStyle;
+          ctx.beginPath();
+          ctx.rect(xLeft, yTop, barWidth, barHeight);
           ctx.fill();
-          if (extraStyle.borderWidth) {
-            ctx.strokeStyle = extraStyle.borderColor || '#333';
-            ctx.lineWidth = extraStyle.borderWidth;
-            ctx.stroke();
-          }
+
+          ctx.strokeStyle = styles.textColor;
+          ctx.lineWidth = 2;
+          drawSketchyRect(ctx, xLeft, yTop, barWidth, barHeight);
         } else {
-          ctx.fillRect(xLeft, yTop, barWidth, barHeight);
+          const radii = extraStyle.borderRadius || 0;
+          if (radii) {
+            drawRoundedRect(ctx, xLeft, yTop, barWidth, barHeight, radii);
+            ctx.fill();
+            if (extraStyle.borderWidth) {
+              ctx.strokeStyle = extraStyle.borderColor || '#333';
+              ctx.lineWidth = extraStyle.borderWidth;
+              ctx.stroke();
+            }
+          } else {
+            ctx.fillRect(xLeft, yTop, barWidth, barHeight);
+          }
         }
       }
 

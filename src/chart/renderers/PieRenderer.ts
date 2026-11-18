@@ -179,7 +179,8 @@ export class PieRenderer extends BaseRenderer {
       ctx.restore();
 
       // Outside labels and connecting lines
-      if (config.showLabels !== false && pct > 0.02) {
+      const targetVal = targetValues[index] || 0;
+      if (config.showLabels !== false && pct > 0.02 && targetVal > 0) {
         const rTickStart = currentOuterRadius + 2;
         const rTickMid = currentOuterRadius + 12;
 
@@ -189,7 +190,6 @@ export class PieRenderer extends BaseRenderer {
         const ty2 = cy + rTickMid * Math.sin(midAngle);
         const isRightSide = Math.cos(midAngle) >= 0;
 
-        const targetVal = targetValues[index] || 0;
         let displayVal = '';
         if (config.asPercentage) {
           const targetTotal = targetValues.reduce((sum, v) => sum + v, 0);
